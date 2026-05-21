@@ -7,7 +7,7 @@
     <style>
 
         /* =====================
-           全画面
+           全体
         ===================== */
         html,body{
           height:100%;
@@ -26,8 +26,8 @@
         ===================== */
         h1{
           text-align:center;
-          font-size:42px;
-          margin:15px 0;
+          font-size:50px;
+          margin:10px 0;
         }
 
         /* =====================
@@ -36,29 +36,29 @@
         .card{
           background:white;
           margin:15px;
-          padding:25px;
+          padding:30px;
           border-radius:20px;
           box-shadow:0 4px 12px rgba(0,0,0,0.1);
         }
 
         /* =====================
-           名前入力（超強調）
+           名前入力（さらに強調）
         ===================== */
         #name{
           width:100%;
-          padding:25px;
-          font-size:36px;
-          border-radius:16px;
-          border:5px solid #5cc8ff;
+          padding:30px;
+          font-size:40px;
+          border-radius:18px;
+          border:6px solid #5cc8ff;
         }
 
         #join button{
           margin-top:20px;
           width:100%;
-          height:100px;
-          font-size:36px;
+          height:120px;
+          font-size:42px;
           border:none;
-          border-radius:16px;
+          border-radius:18px;
           background:#5cc8ff;
           color:white;
         }
@@ -68,26 +68,25 @@
         ===================== */
         #q{
           text-align:center;
-          font-size:40px;
+          font-size:48px;
+          margin-bottom:15px;
         }
 
         /* =====================
-           選択肢（画面いっぱい）
+           選択肢（少し小さく＆余白）
         ===================== */
         #choices{
-          flex:1;
           display:grid;
           grid-template-columns:1fr 1fr;
-          grid-template-rows:1fr 1fr;
-          height:100%;
+          gap:25px;
+          padding:10px;
         }
 
-        /* ✅ 超巨大ボタン */
+        /* ✅ サイズ調整 */
         .choice{
-          width:100%;
-          height:100%;
+          padding:35px;
           font-size:36px;
-          border:none;
+          border-radius:20px;
           color:white;
         }
 
@@ -113,17 +112,18 @@
         ===================== */
         #result{
           text-align:center;
-          font-size:42px;
+          font-size:44px;
+          margin-top:20px;
         }
 
         #answerText{
           text-align:center;
-          font-size:36px;
+          font-size:40px;
         }
 
         #scoreText{
           text-align:center;
-          font-size:38px;
+          font-size:42px;
           font-weight:bold;
         }
 
@@ -132,7 +132,7 @@
         ===================== */
         .rank{
           padding:25px;
-          font-size:34px;
+          font-size:38px;
           margin:10px;
           border-radius:16px;
         }
@@ -149,25 +149,25 @@
 
 <h1>クイズ</h1>
 
-<!-- ✅ 参加 -->
+<!-- 参加 -->
 <div id="join" class="card">
     <h2>名前を入力</h2>
     <input id="name" placeholder="名前">
     <button onclick="join()">参加する</button>
 </div>
 
-<!-- ✅ 待機 -->
+<!-- 待機 -->
 <div id="wait" class="card" style="display:none;">
-    <h2>待機中</h2>
+    <h2 style="font-size:44px;">待機中</h2>
 </div>
 
-<!-- ✅ ブロック -->
+<!-- ブロック -->
 <div id="blocked" class="card" style="display:none;">
-    <h2>参加できません</h2>
+    <h2 style="font-size:44px;">参加できません</h2>
 </div>
 
-<!-- ✅ 問題 -->
-<div id="quiz" style="display:none; height:100%;">
+<!-- 問題 -->
+<div id="quiz" style="display:none;">
 
     <div id="q"></div>
 
@@ -179,9 +179,9 @@
 
 </div>
 
-<!-- ✅ ランキング -->
+<!-- ランキング -->
 <div id="ranking" class="card" style="display:none;">
-    <h2>ランキング</h2>
+    <h2 style="font-size:44px;">ランキング</h2>
     <div id="rankList"></div>
 </div>
 
@@ -302,7 +302,7 @@
     return;
     }
 
-    if(s.mode==="waiting"){show("wait"); return;}
+    if(s.mode==="waiting"){show("wait");return;}
 
     const q=(await getDoc(doc(db,"questions","q"+s.questionId))).data();
 
@@ -324,35 +324,20 @@
 
     if(s.mode==="ranking"){
     show("ranking");
-
-    const r=await getDoc(doc(db,"ranking","current"));
-
-    let html="";
-    r.data().top10.forEach((p,i)=>{
-
-    let cls="rank normal";
-    if(i===0) cls="rank top1";
-    else if(i===1) cls="rank top2";
-    else if(i===2) cls="rank top3";
-
-    html+=`<div class="${cls}">
-    ${i+1}位 ${p.name} ${p.score}点
-    </div>`;
-    });
-
-    document.getElementById("rankList").innerHTML=html;
     }
 
     });
 
     /* 回答 */
     window.answer=async(i)=>{
+
     const s=(await getDoc(doc(db,"game","state"))).data();
     if(!s.acceptingAnswers || s.mode==="answer") return;
 
     myChoice=i;
 
     const q=(await getDoc(doc(db,"questions","q"+s.questionId))).data();
+
     render(q,s,false);
 
     await setDoc(doc(db,"answers","q"+s.questionId,"users",userId),
