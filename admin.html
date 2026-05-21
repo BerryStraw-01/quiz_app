@@ -5,36 +5,50 @@
     <title>管理画面</title>
 
     <style>
+
+        /* =====================
+           全画面
+        ===================== */
+        html,body{
+          height:100%;
+          margin:0;
+        }
+
         body{
           font-family:sans-serif;
-          margin:0;
           background:#f5f5f5;
-          font-size:24px;
+          font-size:28px;
+          padding:15px;
+          box-sizing:border-box;
         }
 
+        /* タイトル */
         h1{
           text-align:center;
-          font-size:36px;
-          margin:20px;
+          font-size:40px;
+          margin:15px 0;
         }
 
-        .card{
-          background:white;
-          margin:15px;
-          padding:25px;
-          border-radius:18px;
-          box-shadow:0 3px 10px rgba(0,0,0,0.1);
+        /* =====================
+           セクション
+        ===================== */
+        .section{
+          margin-bottom:25px;
         }
 
+        /* =====================
+           ボタン
+        ===================== */
         button{
           width:100%;
-          height:80px;
-          font-size:24px;
+          height:90px;
+          font-size:28px;
           border:none;
-          border-radius:14px;
-          margin-bottom:12px;
+          border-radius:16px;
+          margin-bottom:15px;
         }
 
+        /* グリッド */
         .grid-2{
           display:grid;
           grid-template-columns:1fr 1fr;
@@ -47,23 +61,45 @@
           gap:15px;
         }
 
-        /* 状態 */
-        .active{ background:#5cc8ff; color:white; }
-        .inactive{ background:#d6ecff; }
-        .gray{ background:#ccc; color:#666; }
-
-        .toggleActive{ background:#5cc8ff; color:white; }
-        .toggleInactive{ background:#d6ecff; }
-
-        .reset{ background:#444; color:white; }
-
-        #playerCount{
-          font-size:32px;
-          font-weight:bold;
-          text-align:center;
+        /* =====================
+           色
+        ===================== */
+        .active{
+          background:#5cc8ff;
+          color:white;
         }
 
-        /* 問題一覧 */
+        .inactive{
+          background:#d6ecff;
+        }
+
+        .gray{
+          background:#ccc;
+          color:#666;
+        }
+
+        .toggleActive{
+          background:#5cc8ff;
+          color:white;
+        }
+
+        .toggleInactive{
+          background:#d6ecff;
+        }
+
+        /* =====================
+           参加人数
+        ===================== */
+        #playerCount{
+          text-align:center;
+          font-size:36px;
+          font-weight:bold;
+          margin-bottom:10px;
+        }
+
+        /* =====================
+           問題
+        ===================== */
         #questionList{
           display:grid;
           grid-template-columns:1fr 1fr;
@@ -71,10 +107,11 @@
         }
 
         .q-card{
-          padding:18px;
-          border-radius:14px;
-          font-size:20px;
+          padding:20px;
+          border-radius:16px;
+          font-size:22px;
         }
+
     </style>
 </head>
 
@@ -82,16 +119,13 @@
 
 <h1>管理画面</h1>
 
-<div class="card">
-    <button class="reset" onclick="reset()">🔄 初期化</button>
-</div>
-
-<div class="card">
+<!-- 参加人数 -->
+<div class="section">
     <div id="playerCount">参加人数：0人</div>
 </div>
 
-<div class="card">
-    <h3>進行操作</h3>
+<!-- 進行 -->
+<div class="section">
 
     <div class="grid-2">
         <button id="btnJoin" onclick="startJoin()">参加受付</button>
@@ -103,14 +137,21 @@
         <button id="btnRanking" onclick="showRanking()">ランキング</button>
         <button id="btnQuestion">問題</button>
     </div>
+
 </div>
 
-<div class="card">
-    <h3>問題選択</h3>
+<!-- 問題選択 -->
+<div class="section">
 
     <button id="btnToggle" onclick="toggleAnswer()"></button>
 
     <div id="questionList"></div>
+
+</div>
+
+<!-- 初期化 -->
+<div class="section">
+    <button style="background:#444;color:white;" onclick="reset()">🔄 初期化</button>
 </div>
 
 <script type="module">
@@ -135,17 +176,13 @@
 
     const update = ()=> setDoc(doc(db,"game","state"), state);
 
-    /* =====================
-       ✅ 参加人数（完全版）
-    ===================== */
+    /* ✅ 参加人数 */
     onSnapshot(collection(db,"players"), snap=>{
       document.getElementById("playerCount").innerText =
         "参加人数：" + snap.size + "人";
     });
 
-    /* =====================
-       ✅ 問題一覧（復活）
-    ===================== */
+    /* ✅ 問題一覧 */
     async function loadQuestions(){
 
       const snap = await getDocs(collection(db,"questions"));
@@ -167,9 +204,7 @@
       document.getElementById("questionList").innerHTML = html;
     }
 
-    /* =====================
-       ✅ UI更新（完全復元）
-    ===================== */
+    /* ✅ UI */
     function updateUI(s){
 
       set("btnJoin", s.mode==="join");
@@ -179,10 +214,9 @@
 
       // 問題ボタン
       const qBtn=document.getElementById("btnQuestion");
-      qBtn.classList.remove("active","gray");
-      qBtn.classList.add(s.mode==="question" ? "active" : "gray");
+      qBtn.className = s.mode==="question" ? "active" : "gray";
 
-      // 問題一覧
+      // 問題カード
       document.querySelectorAll(".q-card").forEach(el=>{
         el.classList.remove("active");
         el.classList.add("inactive");
@@ -209,26 +243,16 @@
     function set(id,flag){
       const el=document.getElementById(id);
       el.classList.remove("active","inactive");
-      el.classList.add(flag ? "active":"inactive");
+      el.classList.add(flag ? "active" : "inactive");
     }
 
-    /* =====================
-       操作（全部復活）
-    ===================== */
-
+    /* 操作 */
     window.startJoin=()=>{ state.mode="join"; update(); };
     window.goWaiting=()=>{ state.mode="waiting"; update(); };
-
-    window.setQ=q=>{
-      state.questionId=q;
-      state.mode="question";
-      state.acceptingAnswers=false;
-      update();
-    };
-
+    window.setQ=q=>{ state.questionId=q; state.mode="question"; state.acceptingAnswers=false; update(); };
     window.showAnswer=()=>{ state.mode="answer"; update(); };
 
-    window.showRanking=async()=>{
+    window.showRanking = async ()=>{
 
       const snap = await getDocs(collection(db,"players"));
 
@@ -251,23 +275,21 @@
     };
 
     window.reset = async ()=>{
-      state = {mode:"waiting",questionId:1,acceptingAnswers:false};
-      await setDoc(doc(db,"game","state"), state);
+      state={mode:"waiting",questionId:1,acceptingAnswers:false};
+      await setDoc(doc(db,"game","state"),state);
 
       const p = await getDocs(collection(db,"players"));
       for(const d of p.docs) await deleteDoc(d.ref);
     };
 
-    /* =====================
-       監視
-    ===================== */
+    /* 監視 */
     onSnapshot(doc(db,"game","state"), snap=>{
       updateUI(snap.data());
     });
 
-    /* 初期 */
     loadQuestions();
 
 </script>
+
 </body>
 </html>
