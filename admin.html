@@ -5,99 +5,66 @@
     <title>管理画面</title>
 
     <style>
-
         body{
           font-family:sans-serif;
-          margin:0;
           background:#f5f5f5;
+          margin:0;
+          font-size:18px;
         }
 
-        /* タイトル */
         h1{
           text-align:center;
-          margin:15px;
+          font-size:28px;
         }
 
-        /* カード */
         .card{
           background:white;
           margin:10px;
-          padding:15px;
-          border-radius:15px;
+          padding:20px;
+          border-radius:16px;
           box-shadow:0 2px 8px rgba(0,0,0,0.1);
         }
 
-        /* ボタン（横いっぱい） */
         button{
           width:100%;
-          padding:14px;
-          margin-bottom:10px;
+          padding:20px;
+          font-size:18px;
           border:none;
-          border-radius:10px;
-          font-size:14px;
+          border-radius:12px;
+          margin-bottom:10px;
         }
 
-        /* 上段2つ */
         .grid-2{
           display:grid;
           grid-template-columns:1fr 1fr;
-          gap:10px;
+          gap:12px;
         }
 
-        /* 下段3つ */
         .grid-3{
           display:grid;
           grid-template-columns:1fr 1fr 1fr;
-          gap:10px;
+          gap:12px;
         }
 
-        /* 状態カラー */
-        .active{
-          background:#5cc8ff;
-          color:white;
-          font-weight:bold;
-        }
+        /* 色 */
+        .active{ background:#5cc8ff; color:white; }
+        .inactive{ background:#d6ecff; }
+        .gray{ background:#ccc; color:#666; }
 
-        .inactive{
-          background:#d6ecff;
-        }
+        .toggleActive{ background:#5cc8ff; color:white; }
+        .toggleInactive{ background:#d6ecff; }
 
-        /* 問題ボタン（灰色） */
-        .gray{
-          background:#ccc;
-          color:#666;
-        }
-
-        /* 回答 */
-        .toggleActive{
-          background:#5cc8ff;
-          color:white;
-        }
-
-        .toggleInactive{
-          background:#d6ecff;
-        }
-
-        /* 初期化 */
-        .reset{
-          background:#444;
-          color:white;
-        }
-
-        /* 問題一覧 */
         #questionList{
           display:grid;
           grid-template-columns:1fr 1fr;
-          gap:10px;
+          gap:12px;
         }
 
         .q-card{
-          padding:12px;
-          border-radius:10px;
-          font-size:14px;
-          text-align:left;
+          padding:15px;
+          border-radius:12px;
+          font-size:16px;
         }
-
     </style>
 </head>
 

@@ -5,50 +5,22 @@
     <title>クイズ</title>
 
     <style>
-
-        /* =====================
-           ベース
-        ===================== */
-
         body{
-          text-align:center;
           font-family:sans-serif;
-          margin:0;
           background:#f5f5f5;
+          margin:0;
+          text-align:center;
+          font-size:20px;
         }
-
-        h1{
-          margin:10px;
-        }
-
-        /* =====================
-           カード
-        ===================== */
 
         .card{
           background:white;
           margin:10px;
-          padding:15px;
-          border-radius:15px;
-          box-shadow:0 2px 8px rgba(0,0,0,0.1);
+          padding:20px;
+          border-radius:16px;
         }
 
-        /* =====================
-           ボタン
-        ===================== */
-
-        button{
-          padding:10px 20px;
-          border:none;
-          border-radius:10px;
-          background:#333;
-          color:white;
-          font-size:16px;
-        }
-
-        /* =====================
-           選択肢
-        ===================== */
+        #q{ font-size:26px; margin-bottom:20px; }
 
         #choices{
           display:grid;
@@ -57,55 +29,19 @@
         }
 
         .choice{
-          padding:18px;
-          border-radius:12px;
-          font-size:18px;
+          padding:25px;
+          font-size:20px;
+          border-radius:15px;
           color:white;
         }
 
-        .c0{background:#e74c3c;}
-        .c1{background:#3498db;}
-        .c2{background:#f1c40f;color:black;}
-        .c3{background:#2ecc71;}
+        .c0{background:red;}
+        .c1{background:blue;}
+        .c2{background:orange;color:black;}
+        .c3{background:green;}
 
         .dim{opacity:0.3;}
-        .selected{outline:3px solid black;}
-
-        .choice.disabled{
-          pointer-events:none;
-          opacity:0.4;
-        }
-
-        /* =====================
-           ランキング
-        ===================== */
-
-        .rank{
-          padding:12px;
-          margin:6px;
-          border-radius:10px;
-          text-align:left;
-          font-size:18px;
-        }
-
-        .top1{
-          background:#ffe066;
-          font-weight:bold;
-        }
-
-        .top2{
-          background:#e0e0e0;
-        }
-
-        .top3{
-          background:#f5c993;
-        }
-
-        .normal{
-          background:white;
-          border:1px solid #ddd;
-        }
-
+        .selected{outline:5px solid black;}
     </style>
 </head>
 
