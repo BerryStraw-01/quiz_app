@@ -9,25 +9,32 @@
 
 <h1>管理画面</h1>
 
-<button onclick="reset()">初期画面</button>
+<!-- ✅ 完全リセット -->
+<button onclick="reset()">初期画面に戻る（全削除）</button>
 
 <hr>
+
+<h2>状態操作</h2>
 
 <button onclick="startJoin()">参加受付</button>
-<button onclick="goWaiting()">待機</button>
+<button onclick="goWaiting()">待機画面</button>
 <button onclick="showAnswer()">解答表示</button>
-
-<!-- ✅ ランキング -->
-<button onclick="computeRanking()">ランキング計算 & 表示</button>
+<button onclick="showRanking()">ランキング表示</button>
 
 <hr>
+
+<h2>問題</h2>
 
 <button onclick="setQ(1)">第1問</button>
 <button onclick="setQ(2)">第2問</button>
 
 <hr>
 
-<button onclick="toggleAnswer()">回答 ON/OFF</button>
+<h2>回答操作</h2>
+
+<button onclick="toggleAnswer()">回答 ON / OFF</button>
+
+<hr>
 
 <pre id="status"></pre>
 
@@ -36,13 +43,13 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore,doc,setDoc,onSnapshot,
-      collection,getDocs
+      collection,getDocs,deleteDoc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const db = getFirestore(initializeApp({
-    apiKey:"AIzaSy...",
-    authDomain:"quiz-app-97d7c.firebaseapp.com",
-    projectId:"quiz-app-97d7c"
+      apiKey:"AIzaSyAJnZ28PHb3DNI0CULeGSARrpFC3IBdLL4",
+      authDomain:"quiz-app-97d7c.firebaseapp.com",
+      projectId:"quiz-app-97d7c"
     }));
 
     let state = {
@@ -56,77 +63,89 @@
     };
 
     // ----------------
-    // 状態
+    // ✅ ✅ ✅ 完全リセット（ここが今回の核心）
     // ----------------
-    window.reset=()=>{
-      state.mode="waiting";
-      state.acceptingAnswers=false;
+    window.reset = async ()=>{
+
+      // ① state初期化
+      state.mode = "waiting";
+      state.acceptingAnswers = false;
+      state.questionId = 1;
+
+      await setDoc(doc(db,"game","state"), state, {merge:false});
+
+      // ----------------
+      // ② players 全削除
+      // ----------------
+      const playersSnap = await getDocs(collection(db,"players"));
+
+      for(const p of playersSnap.docs){
+        await deleteDoc(p.ref);
+      }
+
+      // ----------------
+      // ③ answers 全削除
+      // ----------------
+      const answersSnap = await getDocs(collection(db,"answers"));
+
+      for(const qDoc of answersSnap.docs){
+
+        const usersSnap = await getDocs(
+          collection(db,"answers",qDoc.id,"users")
+        );
+
+        for(const u of usersSnap.docs){
+          await deleteDoc(u.ref);
+        }
+      }
+
+      // ----------------
+      // ④ ranking 初期化
+      // ----------------
+      await setDoc(doc(db,"ranking","current"),{
+        top10:[]
+      });
+
+    };
+
+    // ----------------
+    // ✅ 通常操作
+    // ----------------
+
+    window.goWaiting = ()=>{
+      state.mode = "waiting";
+      state.acceptingAnswers = false;
       update();
     };
 
-    window.goWaiting=()=>{
-      state.mode="waiting";
-      state.acceptingAnswers=false;
-      update();
-    };
-
-    window.startJoin=()=>{
+    window.startJoin = ()=>{
       state.mode="join";
       update();
     };
 
-    window.setQ=(q)=>{
-      state.questionId=q;
-      state.mode="question";
-      state.acceptingAnswers=false;
+    window.setQ = (q)=>{
+      state.questionId = q;
+      state.mode = "question";
+      state.acceptingAnswers = false;
       update();
     };
 
-    window.showAnswer=()=>{
+    window.showAnswer = ()=>{
       state.mode="answer";
       update();
     };
 
-    window.toggleAnswer=()=>{
-      state.acceptingAnswers=!state.acceptingAnswers;
-      update();
-    };
-
-    // ----------------
-    // ✅ ランキング計算
-    // ----------------
-    window.computeRanking = async ()=>{
-
-      // ✅ players全部取得（1回）
-      const snap = await getDocs(collection(db,"players"));
-
-      let arr = [];
-
-      snap.forEach(doc=>{
-        const d = doc.data();
-        arr.push({
-          name: d.name,
-          score: d.score || 0
-        });
-      });
-
-      // ✅ ソート
-      arr.sort((a,b)=> b.score - a.score);
-
-      // ✅ 上位10件
-      const top10 = arr.slice(0,10);
-
-      // ✅ Firestore保存
-      await setDoc(doc(db,"ranking","current"),{
-        top10
-      });
-
-      // ✅ モード切替
+    window.showRanking = ()=>{
       state.mode="ranking";
       update();
     };
 
-    onSnapshot(doc(db,"game","state"), snap=>{
+    window.toggleAnswer = ()=>{
+      state.acceptingAnswers = !state.acceptingAnswers;
+      update();
+    };
+
+    onSnapshot(doc(db,"game","state"),snap=>{
       document.getElementById("status").innerText =
         JSON.stringify(snap.data(),null,2);
     });
