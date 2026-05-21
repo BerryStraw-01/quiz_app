@@ -5,43 +5,102 @@
     <title>クイズ</title>
 
     <style>
+
+        /* =====================
+           全体（さらに拡大）
+        ===================== */
         body{
           font-family:sans-serif;
           background:#f5f5f5;
           margin:0;
           text-align:center;
-          font-size:20px;
+          font-size:26px;
         }
 
+        /* カード */
         .card{
           background:white;
-          margin:10px;
-          padding:20px;
-          border-radius:16px;
+          margin:15px;
+          padding:30px;
+          border-radius:20px;
         }
 
-        #q{ font-size:26px; margin-bottom:20px; }
+        /* =====================
+           問題
+        ===================== */
+        #q{
+          font-size:34px;
+          margin-bottom:25px;
+        }
 
+        /* =====================
+           選択肢
+        ===================== */
         #choices{
           display:grid;
           grid-template-columns:1fr 1fr;
-          gap:10px;
+          gap:20px;
         }
 
         .choice{
-          padding:25px;
-          font-size:20px;
-          border-radius:15px;
+          padding:35px;
+          font-size:28px;
+          border-radius:20px;
           color:white;
         }
 
-        .c0{background:red;}
-        .c1{background:blue;}
-        .c2{background:orange;color:black;}
-        .c3{background:green;}
+        .c0{background:#e74c3c;}
+        .c1{background:#3498db;}
+        .c2{background:#f1c40f;color:black;}
+        .c3{background:#2ecc71;}
 
         .dim{opacity:0.3;}
-        .selected{outline:5px solid black;}
+        .selected{outline:8px solid black;}
+
+        /* =====================
+           結果
+        ===================== */
+        #result{
+          font-size:32px;
+          margin-top:20px;
+        }
+
+        #answerText{
+          font-size:28px;
+        }
+
+        #scoreText{
+          font-size:30px;
+          font-weight:bold;
+        }
+
+        /* =====================
+           ランキング
+        ===================== */
+        .rank{
+          padding:20px;
+          margin:10px;
+          border-radius:12px;
+          font-size:26px;
+        }
+
+        .top1{
+          background:#ffe066;
+        }
+
+        .top2{
+          background:#e0e0e0;
+        }
+
+        .top3{
+          background:#f5c993;
+        }
+
+        .normal{
+          background:white;
+          border:2px solid #ccc;
+        }
+
     </style>
 </head>
 
@@ -49,49 +108,36 @@
 
 <h1>クイズ</h1>
 
-<!-- =====================
-     参加
-===================== -->
+<!-- 参加 -->
 <div id="join" class="card">
     <p id="joinStatus"></p>
-    <input id="name" placeholder="名前">
+    <input id="name" placeholder="名前" style="font-size:24px; padding:10px;">
     <br><br>
-    <button onclick="join()">参加</button>
+    <button style="font-size:26px; padding:15px;" onclick="join()">参加</button>
 </div>
 
-<!-- =====================
-     待機
-===================== -->
+<!-- 待機 -->
 <div id="wait" class="card" style="display:none;">
     <h2>待機中</h2>
     <p id="waitText"></p>
 </div>
 
-<!-- =====================
-     ブロック
-===================== -->
+<!-- ブロック -->
 <div id="blocked" class="card" style="display:none;">
     <h2>現在参加できません</h2>
 </div>
 
-<!-- =====================
-     問題
-===================== -->
+<!-- 問題 -->
 <div id="quiz" class="card" style="display:none;">
-
     <h2 id="q"></h2>
-
     <div id="choices"></div>
 
     <p id="result"></p>
     <p id="answerText"></p>
     <p id="scoreText"></p>
-
 </div>
 
-<!-- =====================
-     ランキング
-===================== -->
+<!-- ランキング -->
 <div id="ranking" class="card" style="display:none;">
     <h2>ランキング</h2>
     <div id="rankList"></div>
@@ -114,9 +160,7 @@
     let myChoice=null;
     let lastQ=null;
 
-    /* =====================
-       画面切替
-    ===================== */
+    /* 画面切替 */
     function show(id){
     ["join","wait","quiz","blocked","ranking"].forEach(x=>{
     document.getElementById(x).style.display="none";
@@ -124,9 +168,7 @@
     document.getElementById(id).style.display="block";
     }
 
-    /* =====================
-       プレイヤー確認
-    ===================== */
+    /* ユーザー確認 */
     async function validateUser(){
 
     if(!userId) return false;
@@ -142,9 +184,7 @@
     return true;
     }
 
-    /* =====================
-       参加
-    ===================== */
+    /* 参加 */
     window.join = async ()=>{
 
     const s = (await getDoc(doc(db,"game","state"))).data();
@@ -164,9 +204,7 @@
     show("wait");
     };
 
-    /* =====================
-       スコア加算
-    ===================== */
+    /* スコア */
     async function addScore(q){
 
     const ansRef = doc(db,"answers","q"+lastQ,"users",userId);
@@ -188,9 +226,7 @@
     await setDoc(ansRef,{scored:true},{merge:true});
     }
 
-    /* =====================
-       選択肢生成
-    ===================== */
+    /* 選択肢 */
     function buildChoices(q,s,showAnswer){
 
     let html="";
@@ -214,9 +250,7 @@
     return html;
     }
 
-    /* =====================
-       state監視
-    ===================== */
+    /* state */
     onSnapshot(doc(db,"game","state"), async snap=>{
 
     const s = snap.data();
@@ -232,20 +266,14 @@
     document.getElementById("scoreText").innerText="";
     }
 
-    // 未参加
     if(!valid){
     if(s.mode==="join") show("join");
     else show("blocked");
     return;
     }
 
-    // 待機
-    if(s.mode==="waiting"){
-    show("wait");
-    return;
-    }
+    if(s.mode==="waiting"){ show("wait"); return; }
 
-    // 問題
     if(s.mode==="question"){
 
     show("quiz");
@@ -259,7 +287,6 @@
     return;
     }
 
-    // 解答
     if(s.mode==="answer"){
 
     show("quiz");
@@ -286,7 +313,6 @@
     return;
     }
 
-    // ランキング
     if(s.mode==="ranking"){
 
     show("ranking");
@@ -300,12 +326,11 @@
 
     list.forEach((p,i)=>{
 
-    let cls="rank";
+    let cls="rank normal";
 
-    if(i===0) cls+=" top1";
-    else if(i===1) cls+=" top2";
-    else if(i===2) cls+=" top3";
-    else cls+=" normal";
+    if(i===0) cls="rank top1";
+    else if(i===1) cls="rank top2";
+    else if(i===2) cls="rank top3";
 
     html+=`
     <div class="${cls}">
@@ -319,9 +344,7 @@
 
     });
 
-    /* =====================
-       回答
-    ===================== */
+    /* 回答 */
     window.answer = async (i)=>{
 
     const s=(await getDoc(doc(db,"game","state"))).data();

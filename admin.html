@@ -7,46 +7,47 @@
     <style>
         body{
           font-family:sans-serif;
-          background:#f5f5f5;
           margin:0;
-          font-size:18px;
+          background:#f5f5f5;
+          font-size:24px;
         }
 
         h1{
           text-align:center;
-          font-size:28px;
+          font-size:36px;
+          margin:20px;
         }
 
         .card{
           background:white;
-          margin:10px;
-          padding:20px;
-          border-radius:16px;
-          box-shadow:0 2px 8px rgba(0,0,0,0.1);
+          margin:15px;
+          padding:25px;
+          border-radius:18px;
+          box-shadow:0 3px 10px rgba(0,0,0,0.1);
         }
 
         button{
           width:100%;
-          padding:20px;
-          font-size:18px;
+          height:80px;
+          font-size:24px;
           border:none;
-          border-radius:12px;
-          margin-bottom:10px;
+          border-radius:14px;
+          margin-bottom:12px;
         }
 
         .grid-2{
           display:grid;
           grid-template-columns:1fr 1fr;
-          gap:12px;
+          gap:15px;
         }
 
         .grid-3{
           display:grid;
           grid-template-columns:1fr 1fr 1fr;
-          gap:12px;
+          gap:15px;
         }
 
-        /* 色 */
+        /* 状態 */
         .active{ background:#5cc8ff; color:white; }
         .inactive{ background:#d6ecff; }
         .gray{ background:#ccc; color:#666; }
@@ -54,16 +55,25 @@
         .toggleActive{ background:#5cc8ff; color:white; }
         .toggleInactive{ background:#d6ecff; }
 
+        .reset{ background:#444; color:white; }
+
+        #playerCount{
+          font-size:32px;
+          font-weight:bold;
+          text-align:center;
+        }
+
+        /* 問題一覧 */
         #questionList{
           display:grid;
           grid-template-columns:1fr 1fr;
-          gap:12px;
+          gap:15px;
         }
 
         .q-card{
-          padding:15px;
-          border-radius:12px;
-          font-size:16px;
+          padding:18px;
+          border-radius:14px;
+          font-size:20px;
         }
     </style>
 </head>
@@ -72,48 +82,43 @@
 
 <h1>管理画面</h1>
 
-<!-- 初期 -->
 <div class="card">
     <button class="reset" onclick="reset()">🔄 初期化</button>
 </div>
 
-<!-- 進行 -->
 <div class="card">
+    <div id="playerCount">参加人数：0人</div>
+</div>
 
+<div class="card">
     <h3>進行操作</h3>
 
-    <!-- 上段 -->
     <div class="grid-2">
         <button id="btnJoin" onclick="startJoin()">参加受付</button>
         <button id="btnWait" onclick="goWaiting()">待機</button>
     </div>
 
-    <!-- 下段 -->
     <div class="grid-3">
-        <button id="btnQuestion">問題</button>
         <button id="btnAnswer" onclick="showAnswer()">解答</button>
         <button id="btnRanking" onclick="showRanking()">ランキング</button>
+        <button id="btnQuestion">問題</button>
     </div>
-
 </div>
 
-<!-- 問題選択 -->
 <div class="card">
-
     <h3>問題選択</h3>
 
     <button id="btnToggle" onclick="toggleAnswer()"></button>
 
     <div id="questionList"></div>
-
 </div>
 
 <script type="module">
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-      getFirestore,doc,setDoc,onSnapshot,
-      collection,getDocs,deleteDoc
+      getFirestore, doc, setDoc, onSnapshot,
+      collection, getDocs, deleteDoc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const db = getFirestore(initializeApp({
@@ -128,10 +133,18 @@
       acceptingAnswers:false
     };
 
-    const update = ()=> setDoc(doc(db,"game","state"),state);
+    const update = ()=> setDoc(doc(db,"game","state"), state);
 
     /* =====================
-       問題一覧
+       ✅ 参加人数（完全版）
+    ===================== */
+    onSnapshot(collection(db,"players"), snap=>{
+      document.getElementById("playerCount").innerText =
+        "参加人数：" + snap.size + "人";
+    });
+
+    /* =====================
+       ✅ 問題一覧（復活）
     ===================== */
     async function loadQuestions(){
 
@@ -140,13 +153,12 @@
       let html="";
 
       snap.forEach(docSnap=>{
-
         const d = docSnap.data();
         const id = docSnap.id.replace("q","");
 
         html += `
           <div id="q${id}" class="q-card inactive"
-               onclick="setQ(${id})">
+            onclick="setQ(${id})">
             第${id}問：${d.text}
           </div>
         `;
@@ -156,7 +168,7 @@
     }
 
     /* =====================
-       UI更新
+       ✅ UI更新（完全復元）
     ===================== */
     function updateUI(s){
 
@@ -165,28 +177,24 @@
       set("btnAnswer", s.mode==="answer");
       set("btnRanking", s.mode==="ranking");
 
-      // ✅ 問題ボタン（灰色＋条件）
-      const qBtn = document.getElementById("btnQuestion");
+      // 問題ボタン
+      const qBtn=document.getElementById("btnQuestion");
+      qBtn.classList.remove("active","gray");
+      qBtn.classList.add(s.mode==="question" ? "active" : "gray");
 
-      if(s.mode==="question"){
-        qBtn.className="active";
-      }else{
-        qBtn.className="gray";
-      }
-
-      // ✅ 問題選択
+      // 問題一覧
       document.querySelectorAll(".q-card").forEach(el=>{
         el.classList.remove("active");
         el.classList.add("inactive");
       });
 
-      const current=document.getElementById("q"+s.questionId);
-      if(current){
-        current.classList.remove("inactive");
-        current.classList.add("active");
+      const cur=document.getElementById("q"+s.questionId);
+      if(cur){
+        cur.classList.remove("inactive");
+        cur.classList.add("active");
       }
 
-      // ✅ 回答
+      // 回答
       const btn=document.getElementById("btnToggle");
 
       if(s.acceptingAnswers){
@@ -198,71 +206,62 @@
       }
     }
 
-    /* 共通 */
     function set(id,flag){
       const el=document.getElementById(id);
-      el.className = flag ? "active" : "inactive";
+      el.classList.remove("active","inactive");
+      el.classList.add(flag ? "active":"inactive");
     }
 
     /* =====================
-       操作
+       操作（全部復活）
     ===================== */
-
-    window.reset = async ()=>{
-      state = {mode:"waiting",questionId:1,acceptingAnswers:false};
-      await setDoc(doc(db,"game","state"),state);
-
-      const players = await getDocs(collection(db,"players"));
-      for(const p of players.docs) await deleteDoc(p.ref);
-
-      const answers = await getDocs(collection(db,"answers"));
-      for(const q of answers.docs){
-        const users = await getDocs(collection(db,"answers",q.id,"users"));
-        for(const u of users.docs) await deleteDoc(u.ref);
-      }
-
-      await setDoc(doc(db,"ranking","current"),{top10:[]});
-    };
 
     window.startJoin=()=>{ state.mode="join"; update(); };
     window.goWaiting=()=>{ state.mode="waiting"; update(); };
-    window.setQ=(q)=>{ state.questionId=q; state.mode="question"; state.acceptingAnswers=false; update(); };
-    window.showAnswer=()=>{ state.mode="answer"; update(); };
-    window.showRanking = async ()=>{
 
-      // ✅ プレイヤー取得
+    window.setQ=q=>{
+      state.questionId=q;
+      state.mode="question";
+      state.acceptingAnswers=false;
+      update();
+    };
+
+    window.showAnswer=()=>{ state.mode="answer"; update(); };
+
+    window.showRanking=async()=>{
+
       const snap = await getDocs(collection(db,"players"));
 
-      let arr = [];
+      let arr=[];
+      snap.forEach(d=>arr.push(d.data()));
 
-      snap.forEach(d=>{
-        const data = d.data();
+      arr.sort((a,b)=>b.score-a.score);
 
-        arr.push({
-          name: data.name,
-          score: data.score || 0
-        });
-      });
-
-      // ✅ スコア順
-      arr.sort((a,b)=> b.score - a.score);
-
-      // ✅ 上位10人保存
       await setDoc(doc(db,"ranking","current"),{
-        top10: arr.slice(0,10)
+        top10:arr.slice(0,10)
       });
 
-      // ✅ 表示へ
       state.mode="ranking";
       update();
     };
 
-    window.toggleAnswer=()=>{ state.acceptingAnswers=!state.acceptingAnswers; update(); };
+    window.toggleAnswer=()=>{
+      state.acceptingAnswers=!state.acceptingAnswers;
+      update();
+    };
+
+    window.reset = async ()=>{
+      state = {mode:"waiting",questionId:1,acceptingAnswers:false};
+      await setDoc(doc(db,"game","state"), state);
+
+      const p = await getDocs(collection(db,"players"));
+      for(const d of p.docs) await deleteDoc(d.ref);
+    };
 
     /* =====================
-       state監視
+       監視
     ===================== */
-    onSnapshot(doc(db,"game","state"),snap=>{
+    onSnapshot(doc(db,"game","state"), snap=>{
       updateUI(snap.data());
     });
 
