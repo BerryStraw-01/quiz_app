@@ -7,50 +7,56 @@
     <style>
 
         /* =====================
-           全体
+           全画面
         ===================== */
-        body{
-          font-family:sans-serif;
+        html,body{
+          height:100%;
           margin:0;
-          background:#f5f5f5;
-          padding:20px;
-          font-size:30px;
         }
 
-        /* タイトル */
-        h1{
-          text-align:center;
-          font-size:42px;
+        body{
+          font-family:sans-serif;
+          background:#f5f5f5;
+          display:flex;
+          flex-direction:column;
         }
 
         /* =====================
-           白枠カード
+           タイトル
+        ===================== */
+        h1{
+          text-align:center;
+          font-size:42px;
+          margin:15px 0;
+        }
+
+        /* =====================
+           カード
         ===================== */
         .card{
           background:white;
+          margin:15px;
           padding:25px;
           border-radius:20px;
-          margin-bottom:25px;
           box-shadow:0 4px 12px rgba(0,0,0,0.1);
         }
 
         /* =====================
-           名前入力（強調）
+           名前入力（超強調）
         ===================== */
-
         #name{
           width:100%;
           padding:25px;
-          font-size:30px;
+          font-size:36px;
           border-radius:16px;
-          border:4px solid #5cc8ff;
+          border:5px solid #5cc8ff;
         }
 
         #join button{
           margin-top:20px;
           width:100%;
-          height:80px;
-          font-size:30px;
+          height:100px;
+          font-size:36px;
           border:none;
           border-radius:16px;
           background:#5cc8ff;
@@ -61,23 +67,27 @@
            問題
         ===================== */
         #q{
-          font-size:42px;
-          margin-bottom:20px;
+          text-align:center;
+          font-size:40px;
         }
 
         /* =====================
-           選択肢（巨大化）
+           選択肢（画面いっぱい）
         ===================== */
         #choices{
+          flex:1;
           display:grid;
           grid-template-columns:1fr 1fr;
-          gap:20px;
+          grid-template-rows:1fr 1fr;
+          height:100%;
         }
 
+        /* ✅ 超巨大ボタン */
         .choice{
-          padding:40px;
-          font-size:32px;
-          border-radius:20px;
+          width:100%;
+          height:100%;
+          font-size:36px;
+          border:none;
           color:white;
         }
 
@@ -90,8 +100,8 @@
         .selected{outline:10px solid black;}
 
         .choice.disabled{
-          opacity:0.3;
           pointer-events:none;
+          opacity:0.3;
         }
 
         .choice.answer-correct{
@@ -102,15 +112,18 @@
            結果
         ===================== */
         #result{
-          font-size:40px;
+          text-align:center;
+          font-size:42px;
         }
 
         #answerText{
-          font-size:34px;
+          text-align:center;
+          font-size:36px;
         }
 
         #scoreText{
-          font-size:36px;
+          text-align:center;
+          font-size:38px;
           font-weight:bold;
         }
 
@@ -119,7 +132,7 @@
         ===================== */
         .rank{
           padding:25px;
-          font-size:32px;
+          font-size:34px;
           margin:10px;
           border-radius:16px;
         }
@@ -138,38 +151,37 @@
 
 <!-- ✅ 参加 -->
 <div id="join" class="card">
-    <h2>名前を入力してください</h2>
-
+    <h2>名前を入力</h2>
     <input id="name" placeholder="名前">
-
     <button onclick="join()">参加する</button>
 </div>
 
 <!-- ✅ 待機 -->
 <div id="wait" class="card" style="display:none;">
-    <h2>待機中...</h2>
+    <h2>待機中</h2>
 </div>
 
 <!-- ✅ ブロック -->
 <div id="blocked" class="card" style="display:none;">
-    <h2>現在参加できません</h2>
+    <h2>参加できません</h2>
 </div>
 
 <!-- ✅ 問題 -->
-<div id="quiz" class="card" style="display:none;">
-    <h2 id="q"></h2>
+<div id="quiz" style="display:none; height:100%;">
+
+    <div id="q"></div>
 
     <div id="choices"></div>
 
-    <p id="result"></p>
-    <p id="answerText"></p>
-    <p id="scoreText"></p>
+    <div id="result"></div>
+    <div id="answerText"></div>
+    <div id="scoreText"></div>
+
 </div>
 
 <!-- ✅ ランキング -->
 <div id="ranking" class="card" style="display:none;">
     <h2>ランキング</h2>
-
     <div id="rankList"></div>
 </div>
 
@@ -203,7 +215,7 @@
     async function validateUser(){
     if(!userId) return false;
 
-    const snap = await getDoc(doc(db,"players",userId));
+    const snap=await getDoc(doc(db,"players",userId));
     if(!snap.exists()){
     localStorage.removeItem("userId");
     userId=null;
@@ -213,8 +225,7 @@
     }
 
     /* 参加 */
-    window.join = async ()=>{
-
+    window.join=async()=>{
     const s=(await getDoc(doc(db,"game","state"))).data();
     if(s.mode!=="join") return;
 
@@ -252,7 +263,7 @@
 
     if(i===myChoice) cls+=" selected";
 
-    const click = (s.acceptingAnswers&&!showAnswer)
+    const click=(s.acceptingAnswers&&!showAnswer)
     ? `onclick="answer(${i})"` : "";
 
     if(!s.acceptingAnswers && !showAnswer){
@@ -260,7 +271,7 @@
     }
 
     html+=`<div class="${cls}" ${click}>
-    ${label[i]} ${c}
+    ${label[i]}<br>${c}
     </div>`;
     });
 
@@ -279,10 +290,10 @@
     lastQ=s.questionId;
     myChoice=null;
 
+    document.getElementById("choices").innerHTML="";
     document.getElementById("result").innerText="";
     document.getElementById("answerText").innerText="";
     document.getElementById("scoreText").innerText="";
-    document.getElementById("choices").innerHTML="";
     }
 
     if(!valid){
@@ -335,8 +346,7 @@
     });
 
     /* 回答 */
-    window.answer = async (i)=>{
-
+    window.answer=async(i)=>{
     const s=(await getDoc(doc(db,"game","state"))).data();
     if(!s.acceptingAnswers || s.mode==="answer") return;
 
@@ -345,10 +355,8 @@
     const q=(await getDoc(doc(db,"questions","q"+s.questionId))).data();
     render(q,s,false);
 
-    await setDoc(
-    doc(db,"answers","q"+s.questionId,"users",userId),
-    {choice:i,scored:false}
-    );
+    await setDoc(doc(db,"answers","q"+s.questionId,"users",userId),
+    {choice:i,scored:false});
     };
 
 </script>
