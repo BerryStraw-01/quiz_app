@@ -5,21 +5,21 @@
     <title>クイズ</title>
 
     <style>
-        body{text-align:center;font-family:sans-serif;}
+        body { text-align:center; font-family:sans-serif; }
 
-        #choices{
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:10px;
-        width:80%;
-        margin:auto;
+        #choices {
+          display:grid;
+          grid-template-columns:1fr 1fr;
+          gap:10px;
+          width:80%;
+          margin:auto;
         }
 
-        .choice{
-        padding:20px;
-        border-radius:10px;
-        color:white;
-        cursor:pointer;
+        .choice {
+          padding:20px;
+          border-radius:10px;
+          color:white;
+          cursor:pointer;
         }
 
         .c0{background:red;}
@@ -30,7 +30,12 @@
         .dim{opacity:0.3;}
         .selected{outline:4px solid white;}
 
-        #waitText{margin-top:10px;}
+        #waitText { margin-top:10px; }
+
+        .choice.disabled {
+          pointer-events:none;
+          opacity:0.4;
+        }
     </style>
 </head>
 
@@ -51,7 +56,7 @@
     <p id="waitText"></p>
 </div>
 
-<!-- ✅ ブロック -->
+<!-- ✅ 未参加ブロック -->
 <div id="blocked" style="display:none;">
     <h2>現在クイズに参加できていません</h2>
 </div>
@@ -68,193 +73,29 @@
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-    getFirestore,addDoc,collection,doc,getDoc,setDoc,onSnapshot
+      getFirestore, addDoc, collection, doc, getDoc, setDoc, onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const db = getFirestore(initializeApp({
-    apiKey:"AIzaSy...",
-    authDomain:"quiz-app-97d7c.firebaseapp.com",
-    projectId:"quiz-app-97d7c"
+      apiKey: "AIzaSyAJnZ28PHb3DNI0CULeGSARrpFC3IBdLL4",
+      authDomain: "quiz-app-97d7c.firebaseapp.com",
+      projectId: "quiz-app-97d7c"
     }));
 
-    let userId=null;
-    let myChoice=null;
-    let lastQ=null;
+    // ✅ 重要：リロード復帰
+    let userId = localStorage.getItem("userId");
+
+    let myChoice = null;
+    let lastQ = null;
 
     // ----------------
-    // ✅ UI切替
+    // 画面切替
     // ----------------
     function show(id){
-    ["join","wait","quiz","blocked"].forEach(x=>{
-    document.getElementById(x).style.display="none";
-    });
-    document.getElementById(id).style.display="block";
-    }
-
-    // ----------------
-    // ✅ 選択肢生成（超重要）
-    // ----------------
-    function buildChoices(q, showAnswer){
-
-    let html="";
-    const label=["①","②","③","④"];
-
-    q.choices.forEach((c,i)=>{
-
-    let cls="choice c"+i;
-
-    // ✅ 回答中
-    if(!showAnswer && myChoice!==null){
-    if(i!==myChoice) cls+=" dim";
-    }
-
-    // ✅ 解答表示
-    if(showAnswer){
-    if(i!==q.answer) cls+=" dim";
-    }
-
-    // ✅ 選択
-    if(i===myChoice) cls+=" selected";
-
-    html+=`
-    <div class="${cls}" onclick="answer(${i})">
-    ${label[i]} ${c}
-    </div>`;
-    });
-
-    return html;
-    }
-
-    // ----------------
-    // ✅ state監視（完全版）
-    // ----------------
-    onSnapshot(doc(db,"game","state"), async snap=>{
-
-    const s=snap.data();
-    if(!s)return;
-
-    // ✅ 問題変更リセット
-    if(s.questionId!==lastQ){
-    lastQ=s.questionId;
-    myChoice=null;
-
-    document.getElementById("result").innerText="";
-    document.getElementById("answerText").innerText="";
-    }
-
-    // ----------------
-    // 未参加
-    // ----------------
-    if(!userId){
-
-    if(s.mode==="join"){
-    show("join");
-    document.getElementById("joinStatus").innerText="参加受付中";
-    }else{
-    show("wait");
-    document.getElementById("waitText").innerText="現在クイズに参加できていません。";
-    }
-
-    return;
-    }
-
-    // ----------------
-    // 参加済
-    // ----------------
-    if(s.mode==="waiting"){
-    show("wait");
-    document.getElementById("waitText").innerText="参加に成功しています。しばらくお待ちください";
-    return;
-    }
-
-    // ----------------
-    // 問題
-    // ----------------
-    if(s.mode==="question"){
-
-    show("quiz");
-
-    const snapQ=await getDoc(doc(db,"questions","q"+s.questionId));
-    const q=snapQ.data();
-
-    document.getElementById("q").innerText=q.text;
-
-    // ✅ UI表示
-    document.getElementById("choices").innerHTML =
-    buildChoices(q,false);
-
-    // ✅ 回答ON/OFF
-    controlButtons(s.acceptingAnswers);
-
-    return;
-    }
-
-    // ----------------
-    // 解答
-    // ----------------
-    if(s.mode==="answer"){
-
-    show("quiz");
-
-    const snapQ=await getDoc(doc(db,"questions","q"+s.questionId));
-    const q=snapQ.data();
-
-    document.getElementById("q").innerText=q.text;
-
-    // ✅ UI表示
-    document.getElementById("choices").innerHTML =
-    buildChoices(q,true);
-
-    // ✅ 押せない
-    controlButtons(false);
-
-    // ✅ 正誤
-    document.getElementById("result").innerText =
-    (myChoice===q.answer)?"正解":"不正解";
-
-    document.getElementById("answerText").innerText =
-    "正解は "+(q.answer+1)+" 番";
-
-    return;
-    }
-
-    });
-
-    // ----------------
-    // ✅ 回答
-    // ----------------
-    window.answer = async (i)=>{
-
-    const s=(await getDoc(doc(db,"game","state"))).data();
-
-    if(!s.acceptingAnswers) return;
-
-    // ✅ 保存
-    myChoice=i;
-
-    // ✅ UI更新（即反映）
-    const snapQ=await getDoc(doc(db,"questions","q"+s.questionId));
-    const q=snapQ.data();
-
-    document.getElementById("choices").innerHTML =
-    buildChoices(q,false);
-
-    await setDoc(
-    doc(db,"answers","q"+s.questionId,"users",userId),
-    {choice:i}
-    );
-    };
-
-    // ----------------
-    // ✅ ボタン制御
-    // ----------------
-    function controlButtons(enable){
-
-    document.querySelectorAll(".choice").forEach(btn=>{
-    btn.style.pointerEvents = enable ? "auto" : "none";
-    btn.style.opacity = enable ? "1" : "0.4";
-    });
-
+      ["join","wait","quiz","blocked"].forEach(x=>{
+        document.getElementById(x).style.display="none";
+      });
+      document.getElementById(id).style.display="block";
     }
 
     // ----------------
@@ -262,16 +103,193 @@
     // ----------------
     window.join = async ()=>{
 
-    const name=document.getElementById("name").value;
-    if(!name)return;
+      const s = (await getDoc(doc(db,"game","state"))).data();
 
-    const ref=await addDoc(collection(db,"players"),{name});
-    userId=ref.id;
+      // ✅ join以外では参加禁止
+      if(s.mode !== "join") return;
 
-    show("wait");
-    document.getElementById("waitText").innerText=
-    "参加に成功しています。しばらくお待ちください";
+      const name = document.getElementById("name").value;
+      if(!name) return;
 
+      const ref = await addDoc(collection(db,"players"), {name});
+      userId = ref.id;
+
+      localStorage.setItem("userId", userId);
+
+      show("wait");
+      document.getElementById("waitText").innerText =
+        "参加に成功しています。しばらくお待ちください";
+    };
+
+    // ----------------
+    // ✅ 選択肢生成
+    // ----------------
+    function buildChoices(q, s, showAnswer){
+
+      let html="";
+      const label=["①","②","③","④"];
+
+      q.choices.forEach((c,i)=>{
+
+        let cls="choice c"+i;
+
+        // ✅ 回答中
+        if(!showAnswer && myChoice !== null){
+          if(i !== myChoice) cls += " dim";
+        }
+
+        // ✅ 解答表示
+        if(showAnswer){
+          if(i !== q.answer) cls += " dim";
+        }
+
+        // ✅ 選択
+        if(i === myChoice) cls += " selected";
+
+        // ✅ ボタン無効化
+        if(!s.acceptingAnswers) cls += " disabled";
+
+        html += `
+          <div class="${cls}" onclick="answer(${i})">
+            ${label[i]} ${c}
+          </div>
+        `;
+      });
+
+      return html;
+    }
+
+    // ----------------
+    // ✅ state監視（最重要）
+    // ----------------
+    onSnapshot(doc(db,"game","state"), async snap=>{
+
+      // ✅ 参加状態チェック（超重要）
+      if(userId){
+
+        const userDoc = await getDoc(doc(db,"players",userId));
+
+        // ❌ 存在しない → 参加解除
+        if(!userDoc.exists()){
+          userId = null;
+          localStorage.removeItem("userId");
+        }
+      }
+
+      const s = snap.data();
+      if(!s) return;
+
+      // ✅ 問題変更リセット
+      if(s.questionId !== lastQ){
+        lastQ = s.questionId;
+
+        myChoice = null;
+        document.getElementById("result").innerText="";
+        document.getElementById("answerText").innerText="";
+      }
+
+      // ✅ 未参加者
+      if(!userId){
+
+        if(s.mode==="join"){
+          show("join");
+
+          document.getElementById("joinStatus").innerText =
+            "参加受付中";
+
+        } else {
+          show("blocked");
+        }
+
+        return;
+      }
+
+      // ✅ 参加済みはjoinに戻さない
+      if(userId && s.mode==="join"){
+        show("wait");
+        document.getElementById("waitText").innerText =
+          "参加に成功しています。しばらくお待ちください";
+        return;
+      }
+
+      // ----------------
+      // 待機
+      // ----------------
+      if(s.mode==="waiting"){
+        show("wait");
+
+        document.getElementById("waitText").innerText =
+          "参加に成功しています。しばらくお待ちください";
+        return;
+      }
+
+      // ----------------
+      // 問題
+      // ----------------
+      if(s.mode==="question"){
+
+        show("quiz");
+
+        const snapQ = await getDoc(doc(db,"questions","q"+s.questionId));
+        const q = snapQ.data();
+
+        document.getElementById("q").innerText = q.text;
+
+        document.getElementById("choices").innerHTML =
+          buildChoices(q, s, false);
+
+        return;
+      }
+
+      // ----------------
+      // 解答
+      // ----------------
+      if(s.mode==="answer"){
+
+        show("quiz");
+
+        const snapQ = await getDoc(doc(db,"questions","q"+s.questionId));
+        const q = snapQ.data();
+
+        document.getElementById("q").innerText = q.text;
+
+        document.getElementById("choices").innerHTML =
+          buildChoices(q, s, true);
+
+        // ✅ 正誤表示
+        document.getElementById("result").innerText =
+          (myChoice === q.answer) ? "正解" : "不正解";
+
+        document.getElementById("answerText").innerText =
+          "正解は " + (q.answer + 1) + " 番";
+
+        return;
+      }
+
+    });
+
+    // ----------------
+    // ✅ 回答処理
+    // ----------------
+    window.answer = async (i)=>{
+
+      const s = (await getDoc(doc(db,"game","state"))).data();
+
+      if(!s.acceptingAnswers) return;
+
+      myChoice = i;
+
+      // ✅ 即UI更新
+      const snapQ = await getDoc(doc(db,"questions","q"+s.questionId));
+      const q = snapQ.data();
+
+      document.getElementById("choices").innerHTML =
+        buildChoices(q, s, false);
+
+      await setDoc(
+        doc(db,"answers","q"+s.questionId,"users",userId),
+        {choice:i}
+      );
     };
 
 </script>
