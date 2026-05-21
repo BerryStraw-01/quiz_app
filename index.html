@@ -41,27 +41,37 @@
 
 <h1>クイズ</h1>
 
+<!-- 参加 -->
 <div id="join">
     <p id="joinStatus"></p>
     <input id="name">
     <button onclick="join()">参加</button>
 </div>
 
+<!-- 待機 -->
 <div id="wait" style="display:none;">
     <h2>待機中</h2>
     <p id="waitText"></p>
 </div>
 
+<!-- ブロック -->
 <div id="blocked" style="display:none;">
     <h2>現在参加できません</h2>
 </div>
 
+<!-- 問題 -->
 <div id="quiz" style="display:none;">
     <h2 id="q"></h2>
     <div id="choices"></div>
     <p id="result"></p>
     <p id="answerText"></p>
-    <p id="scoreText"></p> <!-- ✅ スコア表示 -->
+    <p id="scoreText"></p>
+</div>
+
+<!-- ✅ ランキング -->
+<div id="ranking" style="display:none;">
+    <h2>ランキング（上位10名）</h2>
+    <div id="rankList"></div>
 </div>
 
 <script type="module">
@@ -85,14 +95,14 @@
     // UI切替
     // ----------------
     function show(id){
-    ["join","wait","quiz","blocked"].forEach(x=>{
+    ["join","wait","quiz","blocked","ranking"].forEach(x=>{
     document.getElementById(x).style.display="none";
     });
     document.getElementById(id).style.display="block";
     }
 
     // ----------------
-    // ✅ プレイヤー存在確認
+    // プレイヤー確認
     // ----------------
     async function validateUser(){
 
@@ -110,7 +120,7 @@
     }
 
     // ----------------
-    // ✅ 参加
+    // 参加
     // ----------------
     window.join = async ()=>{
 
@@ -132,7 +142,7 @@
     };
 
     // ----------------
-    // ✅ スコア加算（重要）
+    // スコア加算
     // ----------------
     async function addScore(q){
 
@@ -143,12 +153,9 @@
 
     const ans = ansSnap.data();
 
-    // ✅ 二重加算防止
     if(ans.scored) return;
-
     if(ans.choice !== q.answer) return;
 
-    // ✅ 加算
     const playerRef = doc(db,"players",userId);
     const playerSnap = await getDoc(playerRef);
 
@@ -158,14 +165,13 @@
     score: score + 1
     },{merge:true});
 
-    // ✅ フラグ更新
     await setDoc(ansRef,{
     scored:true
     },{merge:true});
     }
 
     // ----------------
-    // ✅ 選択肢生成
+    // 選択肢
     // ----------------
     function buildChoices(q,s,showAnswer){
 
@@ -176,12 +182,10 @@
 
     let cls="choice c"+i;
 
-    // 回答中
     if(!showAnswer && myChoice!==null){
     if(i!==myChoice) cls+=" dim";
     }
 
-    // 解答表示
     if(showAnswer){
     if(i!==q.answer) cls+=" dim";
     }
@@ -190,7 +194,7 @@
 
     if(!s.acceptingAnswers) cls+=" disabled";
 
-    html+=`
+    html += `
     <div class="${cls}" onclick="answer(${i})">
     ${label[i]} ${c}
     </div>`;
@@ -200,17 +204,17 @@
     }
 
     // ----------------
-    // ✅ state監視
+    // state監視
     // ----------------
     onSnapshot(doc(db,"game","state"), async snap=>{
 
     const s = snap.data();
     if(!s) return;
 
-    // ✅ プレイヤー検証
+    // プレイヤー確認
     const valid = await validateUser();
 
-    // ✅ 問題変更でリセット
+    // 問題変更リセット
     if(s.questionId !== lastQ){
     lastQ = s.questionId;
     myChoice=null;
@@ -221,13 +225,11 @@
 
     // 未参加
     if(!valid){
-
     if(s.mode==="join"){
     show("join");
     }else{
     show("blocked");
     }
-
     return;
     }
 
@@ -245,7 +247,6 @@
     const q=(await getDoc(doc(db,"questions","q"+s.questionId))).data();
 
     document.getElementById("q").innerText=q.text;
-
     document.getElementById("choices").innerHTML=
     buildChoices(q,s,false);
 
@@ -260,7 +261,6 @@
     const q=(await getDoc(doc(db,"questions","q"+s.questionId))).data();
 
     document.getElementById("q").innerText=q.text;
-
     document.getElementById("choices").innerHTML=
     buildChoices(q,s,true);
 
@@ -271,14 +271,35 @@
     document.getElementById("answerText").innerText =
     "正解は "+(q.answer+1)+" 番";
 
-    // ✅ スコア処理
+    // スコア
     await addScore(q);
 
-    // ✅ スコア取得表示
     const player=(await getDoc(doc(db,"players",userId))).data();
 
     document.getElementById("scoreText").innerText =
-    "現在のスコア: " + player.score;
+    "現在のスコア: "+player.score;
+
+    return;
+    }
+
+    // ✅ ランキング
+    if(s.mode==="ranking"){
+
+    show("ranking");
+
+    const snapRank = await getDoc(doc(db,"ranking","current"));
+
+    if(!snapRank.exists()) return;
+
+    const list = snapRank.data().top10;
+
+    let html="";
+
+    list.forEach((p,i)=>{
+    html += `${i+1}位 ${p.name} : ${p.score}<br>`;
+    });
+
+    document.getElementById("rankList").innerHTML = html;
 
     return;
     }
@@ -286,7 +307,7 @@
     });
 
     // ----------------
-    // ✅ 回答
+    // 回答
     // ----------------
     window.answer = async (i)=>{
 
@@ -306,7 +327,6 @@
     doc(db,"answers","q"+s.questionId,"users",userId),
     {choice:i,scored:false}
     );
-
     };
 
 </script>
