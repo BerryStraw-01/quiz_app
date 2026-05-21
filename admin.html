@@ -7,58 +7,61 @@
     <style>
 
         /* =====================
-           全画面
+           全体
         ===================== */
-        html,body{
-          height:100%;
-          margin:0;
-        }
-
         body{
           font-family:sans-serif;
+          margin:0;
           background:#f5f5f5;
+          padding:20px;
           font-size:28px;
-          padding:15px;
-          box-sizing:border-box;
         }
 
         /* タイトル */
         h1{
           text-align:center;
-          font-size:40px;
-          margin:15px 0;
+          font-size:42px;
+          margin-bottom:20px;
         }
 
         /* =====================
-           セクション
+           白枠カード（復活）
         ===================== */
-        .section{
+        .card{
+          background:white;
+          padding:25px;
+          border-radius:20px;
           margin-bottom:25px;
+          box-shadow:0 4px 12px rgba(0,0,0,0.1);
         }
 
         /* =====================
-           ボタン
+           ボタン（巨大化）
         ===================== */
         button{
           width:100%;
-          height:90px;
-          font-size:28px;
+          height:100px;
+          font-size:32px;
           border:none;
-          border-radius:16px;
-          margin-bottom:15px;
+          border-radius:18px;
         }
 
-        /* グリッド */
+        /* レイアウト */
         .grid-2{
           display:grid;
           grid-template-columns:1fr 1fr;
-          gap:15px;
+          gap:20px;
         }
 
         .grid-3{
           display:grid;
           grid-template-columns:1fr 1fr 1fr;
-          gap:15px;
+          gap:20px;
+        }
+
+        /* ボタン間隔 */
+        .mt{
+          margin-top:20px;
         }
 
         /* =====================
@@ -92,24 +95,24 @@
         ===================== */
         #playerCount{
           text-align:center;
-          font-size:36px;
+          font-size:38px;
           font-weight:bold;
-          margin-bottom:10px;
         }
 
         /* =====================
-           問題
+           問題カード
         ===================== */
         #questionList{
           display:grid;
           grid-template-columns:1fr 1fr;
-          gap:15px;
+          gap:20px;
+          margin-top:20px;
         }
 
         .q-card{
           padding:20px;
-          border-radius:16px;
-          font-size:22px;
+          border-radius:18px;
+          font-size:26px;
         }
 
     </style>
@@ -119,20 +122,20 @@
 
 <h1>管理画面</h1>
 
-<!-- 参加人数 -->
-<div class="section">
+<!-- ✅ 参加人数 -->
+<div class="card">
     <div id="playerCount">参加人数：0人</div>
 </div>
 
-<!-- 進行 -->
-<div class="section">
+<!-- ✅ 進行操作 -->
+<div class="card">
 
     <div class="grid-2">
         <button id="btnJoin" onclick="startJoin()">参加受付</button>
         <button id="btnWait" onclick="goWaiting()">待機</button>
     </div>
 
-    <div class="grid-3">
+    <div class="grid-3 mt">
         <button id="btnAnswer" onclick="showAnswer()">解答</button>
         <button id="btnRanking" onclick="showRanking()">ランキング</button>
         <button id="btnQuestion">問題</button>
@@ -140,8 +143,8 @@
 
 </div>
 
-<!-- 問題選択 -->
-<div class="section">
+<!-- ✅ 問題 -->
+<div class="card">
 
     <button id="btnToggle" onclick="toggleAnswer()"></button>
 
@@ -149,8 +152,8 @@
 
 </div>
 
-<!-- 初期化 -->
-<div class="section">
+<!-- ✅ 初期化 -->
+<div class="card">
     <button style="background:#444;color:white;" onclick="reset()">🔄 初期化</button>
 </div>
 
@@ -176,13 +179,13 @@
 
     const update = ()=> setDoc(doc(db,"game","state"), state);
 
-    /* ✅ 参加人数 */
+    /* ✅ 人数 */
     onSnapshot(collection(db,"players"), snap=>{
       document.getElementById("playerCount").innerText =
         "参加人数：" + snap.size + "人";
     });
 
-    /* ✅ 問題一覧 */
+    /* ✅ 問題 */
     async function loadQuestions(){
 
       const snap = await getDocs(collection(db,"questions"));
@@ -216,7 +219,7 @@
       const qBtn=document.getElementById("btnQuestion");
       qBtn.className = s.mode==="question" ? "active" : "gray";
 
-      // 問題カード
+      // 問題
       document.querySelectorAll(".q-card").forEach(el=>{
         el.classList.remove("active");
         el.classList.add("inactive");
@@ -243,7 +246,7 @@
     function set(id,flag){
       const el=document.getElementById(id);
       el.classList.remove("active","inactive");
-      el.classList.add(flag ? "active" : "inactive");
+      el.classList.add(flag ? "active":"inactive");
     }
 
     /* 操作 */
@@ -253,12 +256,8 @@
     window.showAnswer=()=>{ state.mode="answer"; update(); };
 
     window.showRanking = async ()=>{
-
       const snap = await getDocs(collection(db,"players"));
-
-      let arr=[];
-      snap.forEach(d=>arr.push(d.data()));
-
+      let arr=[]; snap.forEach(d=>arr.push(d.data()));
       arr.sort((a,b)=>b.score-a.score);
 
       await setDoc(doc(db,"ranking","current"),{
@@ -282,7 +281,6 @@
       for(const d of p.docs) await deleteDoc(d.ref);
     };
 
-    /* 監視 */
     onSnapshot(doc(db,"game","state"), snap=>{
       updateUI(snap.data());
     });
@@ -290,6 +288,5 @@
     loadQuestions();
 
 </script>
-
 </body>
 </html>

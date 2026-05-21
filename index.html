@@ -7,40 +7,66 @@
     <style>
 
         /* =====================
-           全画面
+           全体
         ===================== */
-        html, body{
-          height:100%;
-          margin:0;
-        }
-
         body{
           font-family:sans-serif;
+          margin:0;
           background:#f5f5f5;
+          padding:20px;
+          font-size:30px;
+        }
+
+        /* タイトル */
+        h1{
           text-align:center;
-          font-size:28px;
+          font-size:42px;
         }
 
         /* =====================
-           画面を最大化
+           白枠カード
         ===================== */
-        .screen{
+        .card{
+          background:white;
+          padding:25px;
+          border-radius:20px;
+          margin-bottom:25px;
+          box-shadow:0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* =====================
+           名前入力（強調）
+        ===================== */
+
+        #name{
           width:100%;
-          min-height:100vh;
-          box-sizing:border-box;
-          padding:20px;
+          padding:25px;
+          font-size:30px;
+          border-radius:16px;
+          border:4px solid #5cc8ff;
+        }
+
+        #join button{
+          margin-top:20px;
+          width:100%;
+          height:80px;
+          font-size:30px;
+          border:none;
+          border-radius:16px;
+          background:#5cc8ff;
+          color:white;
         }
 
         /* =====================
            問題
         ===================== */
         #q{
-          font-size:40px;
-          margin:25px 0;
+          font-size:42px;
+          margin-bottom:20px;
         }
 
         /* =====================
-           選択肢
+           選択肢（巨大化）
         ===================== */
         #choices{
           display:grid;
@@ -50,7 +76,7 @@
 
         .choice{
           padding:40px;
-          font-size:30px;
+          font-size:32px;
           border-radius:20px;
           color:white;
         }
@@ -61,7 +87,7 @@
         .c3{background:#2ecc71;}
 
         .dim{opacity:0.3;}
-        .selected{outline:8px solid black;}
+        .selected{outline:10px solid black;}
 
         .choice.disabled{
           opacity:0.3;
@@ -73,51 +99,29 @@
         }
 
         /* =====================
-           名前入力（ここ改善）
-        ===================== */
-
-        #name{
-          width:90%;
-          padding:20px;
-          font-size:28px;
-          border-radius:12px;
-          border:3px solid #5cc8ff;
-          outline:none;
-        }
-
-        #join button{
-          margin-top:20px;
-          width:90%;
-          padding:20px;
-          font-size:28px;
-          border:none;
-          border-radius:12px;
-          background:#5cc8ff;
-          color:white;
-        }
-
-        /* =====================
            結果
         ===================== */
-
         #result{
-          font-size:36px;
+          font-size:40px;
+        }
+
+        #answerText{
+          font-size:34px;
         }
 
         #scoreText{
-          font-size:32px;
+          font-size:36px;
           font-weight:bold;
         }
 
         /* =====================
            ランキング
         ===================== */
-
         .rank{
-          padding:20px;
+          padding:25px;
+          font-size:32px;
           margin:10px;
-          border-radius:12px;
-          font-size:30px;
+          border-radius:16px;
         }
 
         .top1{background:#ffe066;}
@@ -132,26 +136,29 @@
 
 <h1>クイズ</h1>
 
-<!-- 参加 -->
-<div id="join" class="screen">
-    <h2>名前を入力して参加</h2>
-    <input id="name" placeholder="名前を入力">
+<!-- ✅ 参加 -->
+<div id="join" class="card">
+    <h2>名前を入力してください</h2>
+
+    <input id="name" placeholder="名前">
+
     <button onclick="join()">参加する</button>
 </div>
 
-<!-- 待機 -->
-<div id="wait" class="screen" style="display:none;">
-    <h2>待機中</h2>
+<!-- ✅ 待機 -->
+<div id="wait" class="card" style="display:none;">
+    <h2>待機中...</h2>
 </div>
 
-<!-- ブロック -->
-<div id="blocked" class="screen" style="display:none;">
+<!-- ✅ ブロック -->
+<div id="blocked" class="card" style="display:none;">
     <h2>現在参加できません</h2>
 </div>
 
-<!-- 問題 -->
-<div id="quiz" class="screen" style="display:none;">
+<!-- ✅ 問題 -->
+<div id="quiz" class="card" style="display:none;">
     <h2 id="q"></h2>
+
     <div id="choices"></div>
 
     <p id="result"></p>
@@ -159,9 +166,10 @@
     <p id="scoreText"></p>
 </div>
 
-<!-- ランキング -->
-<div id="ranking" class="screen" style="display:none;">
+<!-- ✅ ランキング -->
+<div id="ranking" class="card" style="display:none;">
     <h2>ランキング</h2>
+
     <div id="rankList"></div>
 </div>
 
@@ -183,7 +191,7 @@
     let myChoice=null;
     let lastQ=null;
 
-    /* 画面 */
+    /* 画面切替 */
     function show(id){
     ["join","wait","quiz","blocked","ranking"].forEach(x=>{
     document.getElementById(x).style.display="none";
@@ -207,14 +215,14 @@
     /* 参加 */
     window.join = async ()=>{
 
-    const s = (await getDoc(doc(db,"game","state"))).data();
+    const s=(await getDoc(doc(db,"game","state"))).data();
     if(s.mode!=="join") return;
 
     const name=document.getElementById("name").value;
     if(!name)return;
 
-    const ref = await addDoc(collection(db,"players"),{
-    name, score:0
+    const ref=await addDoc(collection(db,"players"),{
+    name,score:0
     });
 
     userId=ref.id;
@@ -223,9 +231,43 @@
     show("wait");
     };
 
-    /* =====================
-       state
-    ===================== */
+    /* 描画 */
+    function render(q,s,showAnswer){
+
+    let html="";
+    const label=["①","②","③","④"];
+
+    q.choices.forEach((c,i)=>{
+
+    let cls="choice c"+i;
+
+    if(showAnswer){
+    if(i===q.answer) cls+=" answer-correct";
+    else cls+=" dim";
+    }
+
+    if(!showAnswer && myChoice!==null && i!==myChoice){
+    cls+=" dim";
+    }
+
+    if(i===myChoice) cls+=" selected";
+
+    const click = (s.acceptingAnswers&&!showAnswer)
+    ? `onclick="answer(${i})"` : "";
+
+    if(!s.acceptingAnswers && !showAnswer){
+    cls+=" disabled";
+    }
+
+    html+=`<div class="${cls}" ${click}>
+    ${label[i]} ${c}
+    </div>`;
+    });
+
+    document.getElementById("choices").innerHTML=html;
+    }
+
+    /* state */
     onSnapshot(doc(db,"game","state"), async snap=>{
 
     const s=snap.data();
@@ -273,9 +315,10 @@
     show("ranking");
 
     const r=await getDoc(doc(db,"ranking","current"));
-    let html="";
 
+    let html="";
     r.data().top10.forEach((p,i)=>{
+
     let cls="rank normal";
     if(i===0) cls="rank top1";
     else if(i===1) cls="rank top2";
@@ -291,42 +334,6 @@
 
     });
 
-    /* 描画 */
-    function render(q,s,showAnswer){
-
-    let html="";
-    const label=["①","②","③","④"];
-
-    q.choices.forEach((c,i)=>{
-
-    let cls="choice c"+i;
-
-    if(showAnswer){
-    if(i===q.answer) cls+=" answer-correct";
-    else cls+=" dim";
-    }
-
-    if(!showAnswer && myChoice!==null && i!==myChoice){
-    cls+=" dim";
-    }
-
-    if(i===myChoice) cls+=" selected";
-
-    const click = (s.acceptingAnswers&&!showAnswer)
-    ? `onclick="answer(${i})"` : "";
-
-    if(!s.acceptingAnswers && !showAnswer){
-    cls+=" disabled";
-    }
-
-    html+=`<div class="${cls}" ${click}>
-    ${label[i]} ${c}
-    </div>`;
-    });
-
-    document.getElementById("choices").innerHTML=html;
-    }
-
     /* 回答 */
     window.answer = async (i)=>{
 
@@ -338,8 +345,10 @@
     const q=(await getDoc(doc(db,"questions","q"+s.questionId))).data();
     render(q,s,false);
 
-    await setDoc(doc(db,"answers","q"+s.questionId,"users",userId),
-    {choice:i,scored:false});
+    await setDoc(
+    doc(db,"answers","q"+s.questionId,"users",userId),
+    {choice:i,scored:false}
+    );
     };
 
 </script>
