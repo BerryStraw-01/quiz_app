@@ -126,34 +126,33 @@
     // ----------------
     function buildChoices(q, s, showAnswer){
 
-      let html="";
-      const label=["①","②","③","④"];
+      let html = "";
+      const label = ["①","②","③","④"];
 
       q.choices.forEach((c,i)=>{
 
-        let cls="choice c"+i;
-
-        // ✅ 回答中
-        if(!showAnswer && myChoice !== null){
-          if(i !== myChoice) cls += " dim";
-        }
+        let cls = "choice c"+i;
 
         // ✅ 解答表示
         if(showAnswer){
           if(i !== q.answer) cls += " dim";
         }
 
-        // ✅ 選択
+        // ✅ 回答中
+        if(!showAnswer && myChoice !== null){
+          if(i !== myChoice) cls += " dim";
+        }
+
         if(i === myChoice) cls += " selected";
 
-        // ✅ ボタン無効化
-        if(!s.acceptingAnswers) cls += " disabled";
+        // ✅ クリック制御（超重要）
+        const clickable = (!showAnswer && s.acceptingAnswers)
+          ? `onclick="answer(${i})"` : "";
 
         html += `
-          <div class="${cls}" onclick="answer(${i})">
+          <div class="${cls}" ${clickable}>
             ${label[i]} ${c}
-          </div>
-        `;
+          </div>`;
       });
 
       return html;
@@ -275,11 +274,12 @@
 
       const s = (await getDoc(doc(db,"game","state"))).data();
 
+      // ✅ 解答表示中 or OFFなら無効
+      if(s.mode === "answer") return;
       if(!s.acceptingAnswers) return;
 
       myChoice = i;
 
-      // ✅ 即UI更新
       const snapQ = await getDoc(doc(db,"questions","q"+s.questionId));
       const q = snapQ.data();
 
