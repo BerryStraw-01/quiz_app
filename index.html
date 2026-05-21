@@ -338,7 +338,35 @@
     }
 
     if(s.mode==="ranking"){
+
       show("ranking");
+
+      const snapRank = await getDoc(doc(db,"ranking","current"));
+
+      if(!snapRank.exists()){
+        document.getElementById("rankList").innerText =
+          "ランキングデータなし";
+        return;
+      }
+
+      let html="";
+
+      snapRank.data().top10.forEach((p,i)=>{
+
+        let cls="rank normal";
+
+        if(i===0) cls="rank top1";
+        else if(i===1) cls="rank top2";
+        else if(i===2) cls="rank top3";
+
+        html += `
+          <div class="${cls}">
+            ${i+1}位 ${p.name} ${p.score}点
+          </div>
+        `;
+      });
+
+      document.getElementById("rankList").innerHTML = html;
     }
 
     });

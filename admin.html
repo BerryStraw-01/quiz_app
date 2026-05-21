@@ -255,13 +255,22 @@
     window.setQ=q=>{ state.questionId=q; state.mode="question"; state.acceptingAnswers=false; update(); };
     window.showAnswer=()=>{ state.mode="answer"; update(); };
 
-    window.showRanking=async()=>{
-      const snap=await getDocs(collection(db,"players"));
-      let arr=[]; snap.forEach(d=>arr.push(d.data()));
-      arr.sort((a,b)=>b.score-a.score);
+    window.showRanking = async ()=>{
 
+      const snap = await getDocs(collection(db,"players"));
+
+      let arr=[];
+
+      snap.forEach(d=>{
+        arr.push(d.data());
+      });
+
+      // スコア順
+      arr.sort((a,b)=>b.score - a.score);
+
+      // 保存
       await setDoc(doc(db,"ranking","current"),{
-        top10:arr.slice(0,10)
+        top10: arr.slice(0,10)
       });
 
       state.mode="ranking";
