@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Firestoreテスト</title>
+</head>
+<body>
+
+<h1>プレイヤー一覧</h1>
+<div id="output">読み込み中...</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // 🔴 ここに自分の設定を貼る
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJnZ28PHb3DNI0CULeGSARrpFC3IBdLL4",
+      authDomain: "quiz-app-97d7c.firebaseapp.com",
+      projectId: "quiz-app-97d7c",
+      storageBucket: "quiz-app-97d7c.firebasestorage.app",
+      messagingSenderId: "255600083342",
+      appId: "1:255600083342:web:c4580a6bfc25241c2464df"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // playersコレクションを監視
+    const playersRef = collection(db, "players");
+
+    onSnapshot(playersRef, (snapshot) => {
+      let text = "";
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        text += `名前: ${data.name} / スコア: ${data.score}<br>`;
+      });
+
+      document.getElementById("output").innerHTML = text;
+    });
+
+</script>
+
+</body>
+</html>
