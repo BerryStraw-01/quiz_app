@@ -101,6 +101,11 @@
           border:2px solid #ccc;
         }
 
+        .choice.disabled{
+          opacity:0.4;        /* 薄くする */
+          pointer-events:none; /* 触れない */
+        }
+
     </style>
 </head>
 
@@ -229,23 +234,46 @@
     /* 選択肢 */
     function buildChoices(q,s,showAnswer){
 
-    let html="";
-    const label=["①","②","③","④"];
+        let html="";
+        const label=["①","②","③","④"];
 
-    q.choices.forEach((c,i)=>{
+        q.choices.forEach((c,i)=>{
 
-    let cls="choice c"+i;
+        let cls="choice c"+i;
 
-    if(!showAnswer && myChoice!==null && i!==myChoice) cls+=" dim";
-    if(showAnswer && i!==q.answer) cls+=" dim";
-    if(i===myChoice) cls+=" selected";
-    if(!s.acceptingAnswers) cls+=" disabled";
+        // ✅ 回答中
+        if(!showAnswer && myChoice!==null && i!==myChoice){
+          cls+=" dim";
+        }
 
-    html+=`
-    <div class="${cls}" onclick="answer(${i})">
-    ${label[i]} ${c}
-    </div>`;
-    });
+        // ✅ 解答表示
+        if(showAnswer && i!==q.answer){
+          cls+=" dim";
+        }
+
+        // ✅ 選択
+        if(i===myChoice){
+          cls+=" selected";
+        }
+
+        // ✅ 押せない状態
+        let clickable="";
+
+        if(s.acceptingAnswers && !showAnswer){
+          clickable = `onclick="answer(${i})"`;
+        }else{
+          cls += " disabled";
+        }
+
+        // ✅ HTML
+        html += `
+        <div class="${cls}" ${clickable}>
+          ${label[i]} ${c}
+        </div>`;
+        });
+
+        return html;
+        }
 
     return html;
     }
