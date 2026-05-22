@@ -28,15 +28,24 @@ let currentTab = "q";
 /* =====================
    参加人数（eventIdで集計）
 ===================== */
-onSnapshot(collection(db,"players"), snap=>{
+onSnapshot(doc(db,"game","state"), async snap=>{
+  if(!snap.exists()) return;
+
+  state = snap.data();
+  updateUI(state);
+
+  // ✅ ここで参加人数を計算する
+  const playersSnap = await getDocs(collection(db,"players"));
   let count = 0;
-  snap.forEach(d=>{
-    if(state.eventId && d.data().eventId === state.eventId){
+  playersSnap.forEach(d=>{
+    if(d.data().eventId === state.eventId){
       count++;
     }
   });
   document.getElementById("playerCount").innerText =
     "参加人数：" + count + "人";
+
+  if(currentTab==="a") loadAnswerStatus();
 });
 
 /* =====================
