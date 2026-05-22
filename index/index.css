@@ -24,11 +24,13 @@ h1{
    ✅ 名前入力
 ===================== */
 #name{
-  width:100%;
-  padding:20px;
-  font-size:4.5vw;
-  border-radius:16px;
-  border:5px solid #5cc8ff;
+  width: 100%;
+  padding: 25px;
+  font-size: 40px;
+  border-radius: 16px;
+  border: 5px solid #5cc8ff;
+
+  box-sizing: border-box; /* ✅ これが核心 */
 }
 
 /* =====================
@@ -119,3 +121,16 @@ h1{
 .top2{background:#e0e0e0;}
 .top3{background:#f5c993;}
 .normal{background:white;border:2px solid #ccc;}
+
+/* 待機中・参加不可 画面を中央寄せ */
+#wait,
+#blocked {
+  text-align: center;
+}
+
+/* 見出しを少し大きく */
+#wait h2,
+#blocked h2 {
+  font-size: 4.5vw;
+  margin: 0;
+}
