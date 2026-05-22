@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>管理画面</title>
+
+    <!-- ✅ CSS 読み込み -->
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+
+<h1>管理画面</h1>
+
+<div class="card">
+    <div id="playerCount">参加人数：0人</div>
+</div>
+
+<div class="card">
+
+    <div class="grid-2">
+        <button id="btnJoin">参加受付</button>
+        <button id="btnWait">待機</button>
+    </div>
+
+    <div class="grid-3 mt">
+        <button id="btnAnswer">解答</button>
+        <button id="btnRanking">ランキング</button>
+        <button id="btnQuestion">問題</button>
+    </div>
+
+</div>
+
+<div class="card">
+
+    <button id="btnToggle"></button>
+
+    <div class="tab-bar">
+        <button id="tab-q" class="tab active">問題選択</button>
+        <button id="tab-a" class="tab">回答状況</button>
+    </div>
+
+    <div id="tab-q-area">
+        <div id="questionList"></div>
+    </div>
+
+    <div id="tab-a-area" style="display:none;">
+        <div class="tab-content-box">
+            <div id="answerStatus"></div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card">
+    <button class="reset">初期化</button>
+</div>
+
+<!-- ✅ JS 読み込み（module） -->
+<script type="module" src="admin.js"></script>
+
+</body>
+</html>

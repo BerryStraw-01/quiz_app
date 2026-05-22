@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>クイズ</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+<h1>クイズ</h1>
+
+<!-- 参加 -->
+<div id="join" class="card">
+    <input id="name" placeholder="名前">
+    <button id="btnJoin">参加する</button>
+</div>
+
+<!-- 待機 -->
+<div id="wait" class="card" style="display:none;">
+    <h2>待機中</h2>
+</div>
+
+<!-- ブロック -->
+<div id="blocked" class="card" style="display:none;">
+    <h2>参加できません</h2>
+</div>
+
+<!-- 問題 -->
+<div id="quiz" class="card" style="display:none;">
+
+    <div id="q"></div>
+    <img id="qImg">
+
+    <div id="choices"></div>
+
+    <div id="result"></div>
+    <div id="answerText"></div>
+    <div id="scoreText"></div>
+
+</div>
+
+<!-- ランキング -->
+<div id="ranking" class="card" style="display:none;">
+    <h2>ランキング</h2>
+    <div id="rankList"></div>
+</div>
+
+<script type="module" src="index.js"></script>
+</body>
+</html>
