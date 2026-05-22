@@ -23,29 +23,49 @@ function show(id){
   document.getElementById(id).style.display="block";
 }
 
-/* ユーザー確認 */
+/* ✅ ユーザー確認（eventId一致必須） */
 async function validateUser(){
   if(!userId) return false;
-  const snap = await getDoc(doc(db,"players",userId));
-  if(!snap.exists()){
+
+  const userSnap = await getDoc(doc(db,"players",userId));
+  if(!userSnap.exists()){
     localStorage.removeItem("userId");
     userId = null;
     return false;
   }
+
+  const stateSnap = await getDoc(doc(db,"game","state"));
+  if(!stateSnap.exists()) return false;
+
+  const user = userSnap.data();
+  const state = stateSnap.data();
+
+  if(user.eventId !== state.eventId){
+    localStorage.removeItem("userId");
+    userId = null;
+    return false;
+  }
+
   return true;
 }
 
-/* 参加 */
+/* ✅ 参加（eventId保存・条件修正） */
 document.getElementById("btnJoin").onclick = async ()=>{
-  const s = (await getDoc(doc(db,"game","state"))).data();
-  if(s.mode !== "join") return;
+  const stateSnap = await getDoc(doc(db,"game","state"));
+  if(!stateSnap.exists()) return;
+
+  const s = stateSnap.data();
+
+  // ✅ 修正点：事故防止
+  if(s.mode === "waiting" || s.mode === "ranking") return;
 
   const name = document.getElementById("name").value;
   if(!name) return;
 
   const ref = await addDoc(collection(db,"players"),{
     name,
-    score:0
+    score: 0,
+    eventId: s.eventId
   });
 
   userId = ref.id;
@@ -207,11 +227,10 @@ window.answer = async (i)=>{
 
   await setDoc(
     doc(db,"answers","q"+s.questionId,"users",userId),
-  {
-    choice: i,
-    scored: false,
-    eventId: s.eventId   // ✅ 追加
-  }
-
+    {
+      choice: i,
+      scored: false,
+      eventId: s.eventId
+    }
   );
 };
