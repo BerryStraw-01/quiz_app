@@ -15,8 +15,11 @@ let userId = localStorage.getItem("userId");
 let myChoice = null;
 let lastQ = null;
 
-/* ✅ index側が信じる最新state（ここが核心） */
+/* ✅ index側が信じる最新state */
 let currentState = null;
+
+/* ✅ 回答ロック */
+let hasAnswered = false;
 
 /* 画面切替 */
 function show(id){
@@ -46,11 +49,9 @@ async function validateUser(){
   return true;
 }
 
-/* ✅ 参加（即時反映対応） */
+/* ✅ 参加 */
 document.getElementById("btnJoin").onclick = async ()=>{
   if(!currentState) return;
-
-  // ✅ 即時判定（Firestoreを待たない）
   if(currentState.mode === "waiting" || currentState.mode === "ranking") return;
 
   const name = document.getElementById("name").value;
@@ -67,7 +68,7 @@ document.getElementById("btnJoin").onclick = async ()=>{
   show("wait");
 };
 
-/* 得点 */
+/* 得点（正解表示時） */
 async function addScore(q){
   const ref = doc(db,"answers","q"+currentState.questionId,"users",userId);
   const snap = await getDoc(ref);
@@ -86,7 +87,7 @@ async function addScore(q){
 }
 
 /* 描画 */
-function render(q,showAnswer){
+function render(q, showAnswer){
 
   document.getElementById("q").innerText = q.text;
 
@@ -115,10 +116,14 @@ function render(q,showAnswer){
 
     if(i===myChoice) cls+=" selected";
 
-    const click = (currentState.acceptingAnswers && !showAnswer)
-      ? `onclick="answer(${i})"` : "";
+    const clickable =
+      currentState.acceptingAnswers &&
+      !showAnswer &&
+      !hasAnswered;
 
-    if(!currentState.acceptingAnswers && !showAnswer){
+    const click = clickable ? `onclick="answer(${i})"` : "";
+
+    if(!clickable){
       cls+=" disabled";
     }
 
@@ -132,7 +137,7 @@ function render(q,showAnswer){
   document.getElementById("choices").innerHTML = html;
 }
 
-/* ✅ Firestore state 監視（indexの唯一の入口） */
+/* ✅ Firestore state 監視 */
 onSnapshot(doc(db,"game","state"), async snap=>{
   if(!snap.exists()) return;
 
@@ -140,9 +145,11 @@ onSnapshot(doc(db,"game","state"), async snap=>{
 
   const valid = await validateUser();
 
+  /* 問題が変わったらリセット */
   if(currentState.questionId !== lastQ){
     lastQ = currentState.questionId;
     myChoice = null;
+    hasAnswered = false;   // ✅ 重要
     document.getElementById("result").innerText="";
     document.getElementById("answerText").innerText="";
     document.getElementById("scoreText").innerText="";
@@ -212,10 +219,12 @@ onSnapshot(doc(db,"game","state"), async snap=>{
   }
 });
 
-/* 回答 */
+/* ✅ 回答（1回のみ） */
 window.answer = async (i)=>{
   if(!currentState || !currentState.acceptingAnswers) return;
+  if(hasAnswered) return;   // ✅ 二重回答防止
 
+  hasAnswered = true;
   myChoice = i;
 
   const q = (await getDoc(
@@ -228,8 +237,10 @@ window.answer = async (i)=>{
     doc(db,"answers","q"+currentState.questionId,"users",userId),
     {
       choice: i,
-      scored: false,
-      eventId: currentState.eventId
-    }
+      eventId: currentState.eventId,
+      answered: true,          // ✅ admin集計用
+      answeredAt: Date.now()
+    },
+    { merge: true }
   );
 };
