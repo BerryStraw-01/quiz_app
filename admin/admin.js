@@ -1,21 +1,28 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getFirestore, doc, setDoc, onSnapshot,
-  collection, getDocs, getDoc
+  getFirestore,
+  doc,
+  setDoc,
+  onSnapshot,
+  collection,
+  getDocs,
+  getDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-/* =====================
+/* =====================================================
    Firebase 初期化
-===================== */
-const db = getFirestore(initializeApp({
+===================================================== */
+const app = initializeApp({
   apiKey:"AIzaSy...",
   authDomain:"quiz-app-97d7c.firebaseapp.com",
   projectId:"quiz-app-97d7c"
-}));
+});
+const db = getFirestore(app);
 
-/* =====================
-   state
-===================== */
+/* =====================================================
+   state（admin側）
+===================================================== */
 let state = {
   mode: "waiting",
   questionId: null,
@@ -24,10 +31,11 @@ let state = {
 };
 
 let currentTab = "q";
+let unsubscribeAnswers = null;
 
-/* =====================
-   ✅ タブ切替（← これが無かった）
-===================== */
+/* =====================================================
+   タブ切替
+===================================================== */
 document.getElementById("tab-q").onclick = () => showTab("q");
 document.getElementById("tab-a").onclick = () => showTab("a");
 
@@ -43,20 +51,16 @@ function showTab(tab){
   document.getElementById("tab-a").classList.toggle("active", tab === "a");
 
   if(tab === "a"){
-    startAnswerListener();   // ← 回答状況を開いた瞬間に購読開始
+    startAnswerListener();
   }
 }
 
-/* =====================
-   参加人数
-===================== */
-let currentPlayerCount = 0;
-
+/* =====================================================
+   参加人数（players 基準）
+===================================================== */
 onSnapshot(collection(db,"players"), snap=>{
   if(!state.eventId){
-    currentPlayerCount = 0;
-    document.getElementById("playerCount").innerText =
-      "参加人数：0人";
+    document.getElementById("playerCount").innerText="参加人数：0人";
     return;
   }
 
@@ -67,16 +71,13 @@ onSnapshot(collection(db,"players"), snap=>{
     }
   });
 
-  currentPlayerCount = count;
   document.getElementById("playerCount").innerText =
-    "参加人数：" + count + "人";
+    `参加人数：${count}人`;
 });
 
-/* =====================
-   回答リアルタイム
-===================== */
-let unsubscribeAnswers = null;
-
+/* =====================================================
+   回答状況（問題別）
+===================================================== */
 async function startAnswerListener(){
 
   if(unsubscribeAnswers){
@@ -84,35 +85,28 @@ async function startAnswerListener(){
     unsubscribeAnswers = null;
   }
 
-  if(!state.eventId || state.questionId === null){
-    document.getElementById("answerStatus").innerHTML = "";
+  if(state.questionId === null){
+    document.getElementById("answerStatus").innerHTML =
+      "<div class='answer-info'>問題が選択されていません</div>";
     return;
   }
 
-  const qSnap = await getDoc(
-    doc(db,"questions","q"+state.questionId)
-  );
+  const qSnap = await getDoc(doc(db,"questions","q"+state.questionId));
   if(!qSnap.exists()) return;
-
   const q = qSnap.data();
-  const answersCol = collection(
-    db,"answers","q"+state.questionId,"users"
-  );
 
-  unsubscribeAnswers = onSnapshot(answersCol, snap=>{
+  const col = collection(db,"answers","q"+state.questionId,"users");
+
+  unsubscribeAnswers = onSnapshot(col, snap=>{
 
     const count = Array(q.choices.length).fill(0);
-    let answeredCount = 0;
+    let answered = 0;
 
     snap.forEach(d=>{
-      const data = d.data();
-      if(
-        data.eventId === state.eventId &&
-        data.answered === true &&
-        typeof data.choice === "number"
-      ){
-        answeredCount++;
-        count[data.choice]++;
+      const a = d.data();
+      if(a.eventId === state.eventId && typeof a.choice === "number"){
+        answered++;
+        count[a.choice]++;
       }
     });
 
@@ -122,166 +116,248 @@ async function startAnswerListener(){
           ${state.acceptingAnswers ? "回答受付中" : "回答結果"}
         </div>
         <div class="answer-sub">
-          ${answeredCount}人が回答済み / ${currentPlayerCount}人参加中
+          ${answered}人が回答済み
         </div>
       </div>
       <div class="answer-table">
     `;
 
-    q.choices.forEach((text,i)=>{
-      const isCorrect =
-        (state.mode === "answer" && i === q.answer);
-
+    q.choices.forEach((t,i)=>{
       html += `
-        <div class="answer-row ${isCorrect ? "correct" : ""}">
-          <div class="answer-no">${String(i+1).padStart(2,"0")}</div>
-          <div class="answer-text">${text}</div>
-          <div class="answer-count">👤 ${count[i]}人</div>
+        <div class="answer-row">
+          <div class="answer-no">${i+1}</div>
+          <div class="answer-text">${t}</div>
+          <div class="answer-count">${count[i]}人</div>
         </div>
       `;
     });
 
-    html += `</div>`;
+    html += "</div>";
     document.getElementById("answerStatus").innerHTML = html;
   });
 }
 
-/* =====================
-   問題選択
-===================== */
+/* =====================================================
+   ✅ ランキング生成（scored === true を集計）
+===================================================== */
+async function buildAndSaveRanking(){
+
+  if(!state.eventId) return;
+
+  const scoreMap = new Map();
+
+  // ✅ answers を直接走査せず、questions を基準にする
+  const questionSnap = await getDocs(collection(db,"questions"));
+
+  for(const qDoc of questionSnap.docs){
+
+    const qId = qDoc.id; // 例: "q1"
+    const usersSnap = await getDocs(
+      collection(db,"answers", qId, "users")
+    );
+
+    usersSnap.forEach(u=>{
+      const a = u.data();
+
+      if(a.eventId !== state.eventId) return;
+      if(a.scored !== true) return;   // ✅ index 側が書いた scored を信頼
+
+      const cur = scoreMap.get(u.id) || {
+        userId: u.id,
+        score: 0
+      };
+
+      cur.score++;
+      scoreMap.set(u.id, cur);
+    });
+  }
+
+  // ✅ players から名前を補完
+  const result = [];
+  for(const [userId, r] of scoreMap.entries()){
+    const pSnap = await getDoc(doc(db,"players", userId));
+    if(!pSnap.exists()) continue;
+
+    result.push({
+      userId,
+      name: pSnap.data().name,
+      score: r.score
+    });
+  }
+
+  result.sort((a,b)=>b.score - a.score);
+
+  await setDoc(doc(db,"ranking","current"),{
+    eventId: state.eventId,
+    updatedAt: serverTimestamp(),
+    top10: result.slice(0,10)
+  });
+}
+
+/* =====================================================
+   ランキング表示
+===================================================== */
+async function showRanking(){
+  const snap = await getDoc(doc(db,"ranking","current"));
+  if(!snap.exists()) return;
+
+  const r = snap.data();
+  if(r.eventId !== state.eventId) return;
+
+  let html = `<div class="ranking-list">`;
+  r.top10.forEach((p,i)=>{
+    html += `
+      <div class="ranking-row">
+        <div class="rank">${i+1}位</div>
+        <div class="rank-name">${p.name}</div>
+        <div class="rank-score">${p.score}点</div>
+      </div>
+    `;
+  });
+  html += `</div>`;
+
+  document.getElementById("answerStatus").innerHTML = html;
+}
+
+/* =====================================================
+   問題一覧
+===================================================== */
 async function loadQuestions(){
   const snap = await getDocs(collection(db,"questions"));
   let html = "";
-  let index = 1;
+  let i = 1;
 
-  snap.forEach(docSnap=>{
-    const d = docSnap.data();
+  snap.forEach(ds=>{
     html += `
-      <div class="q-card" data-no="${String(index).padStart(2,"0")}" data-id="${index}">
-        ${d.text}
+      <div class="q-card" data-id="${i}">
+        ${ds.data().text}
       </div>
     `;
-    index++;
+    i++;
   });
 
   document.getElementById("questionList").innerHTML = html;
 
   document.querySelectorAll(".q-card").forEach(card=>{
-    card.onclick = ()=>{
+    card.onclick = async ()=>{
       const qid = Number(card.dataset.id);
+      const eid = state.eventId ?? Date.now().toString();
 
-      setDoc(doc(db,"game","state"),{
-        questionId: qid,
-        mode: "question",
-        acceptingAnswers: false
+      await setDoc(doc(db,"game","state"),{
+        mode:"question",
+        questionId:qid,
+        acceptingAnswers:false,
+        eventId:eid
       },{ merge:true });
     };
   });
 }
 
-/* =====================
+/* =====================================================
    UI更新
-===================== */
+===================================================== */
 function updateUI(s){
+  state = s;
 
-  setMode("btnJoin",     s.mode==="join");
-  setMode("btnWait",     s.mode==="waiting");
-  setMode("btnRanking",  s.mode==="ranking");
-  setMode("btnAnswer",   s.mode==="answer");
+  setActive("btnJoin",     s.mode==="join");
+  setActive("btnWait",     s.mode==="waiting");
+  setActive("btnAnswer",   s.mode==="answer");
+  setActive("btnRanking",  s.mode==="ranking");
 
-  setMode("btnQuestion", s.mode==="question" && s.questionId !== null);
-  document.getElementById("btnQuestion").disabled = true;
+  setActive("btnQuestion", s.questionId !== null);
 
-  const toggle = document.getElementById("btnToggle");
-  const check  = document.querySelector(".toggle-check");
-  const title  = document.querySelector(".toggle-title");
-  const sub    = document.querySelector(".toggle-sub");
+  const chk   = document.querySelector(".toggle-check");
+  const title = document.querySelector(".toggle-title");
+  const sub   = document.querySelector(".toggle-sub");
 
   if(s.acceptingAnswers){
-    toggle.classList.add("on");
-    check.textContent = "✓";
-    check.className = "toggle-check on";
+    chk.className = "toggle-check on";
+    chk.textContent = "✓";
     title.textContent = "回答：ON";
     sub.textContent   = "回答を受け付けています";
   }else{
-    toggle.classList.remove("on");
-    check.textContent = "✕";
-    check.className = "toggle-check off";
+    chk.className = "toggle-check off";
+    chk.textContent = "✕";
     title.textContent = "回答：OFF";
     sub.textContent   = "回答を受け付けていません";
   }
-
-  document.querySelectorAll(".q-card").forEach(card=>{
-    card.classList.toggle(
-      "active",
-      Number(card.dataset.id) === s.questionId
-    );
-  });
 }
 
-function setMode(id, active){
-  document.getElementById(id).classList.toggle("active", active);
+function setActive(id,on){
+  document.getElementById(id).classList.toggle("active",on);
 }
 
-/* =====================
-   ボタン操作
-===================== */
-function clearQuestionAndSetMode(newMode){
+/* =====================================================
+   進行ボタン操作
+===================================================== */
+function clearAndSet(mode){
   setDoc(doc(db,"game","state"),{
-    mode: newMode,
-    questionId: null,
-    acceptingAnswers: false
+    mode,
+    questionId:null,
+    acceptingAnswers:false
   },{ merge:true });
 }
 
-document.getElementById("btnJoin").onclick =
-  ()=>clearQuestionAndSetMode("join");
+document.getElementById("btnJoin").onclick = ()=>clearAndSet("join");
+document.getElementById("btnWait").onclick = ()=>clearAndSet("waiting");
 
-document.getElementById("btnWait").onclick =
-  ()=>clearQuestionAndSetMode("waiting");
-
-document.getElementById("btnRanking").onclick =
-  ()=>clearQuestionAndSetMode("ranking");
-
-/* 解答ボタン */
 document.getElementById("btnAnswer").onclick =
   ()=>setDoc(doc(db,"game","state"),{
     mode:"answer",
-    questionId: state.questionId,
     acceptingAnswers:true
   },{ merge:true });
 
-document.getElementById("btnToggle").onclick =
-  ()=>setDoc(doc(db,"game","state"),
-    { acceptingAnswers: !state.acceptingAnswers },
-    { merge:true });
+document.getElementById("btnRanking").onclick = async ()=>{
+  await buildAndSaveRanking();
+  await setDoc(doc(db,"game","state"),{ mode:"ranking" },{ merge:true });
+  await showRanking();
+};
 
+/* =====================================================
+   トグル（Firestore値のみ反転）
+===================================================== */
+document.getElementById("btnToggle").onclick = async ()=>{
+  const snap = await getDoc(doc(db,"game","state"));
+  const cur = snap.data().acceptingAnswers;
+
+  await setDoc(doc(db,"game","state"),{
+    acceptingAnswers: !cur
+  },{ merge:true });
+};
+
+/* =====================================================
+   初期化
+===================================================== */
 document.querySelector(".reset").onclick = ()=>{
   setDoc(doc(db,"game","state"),{
     mode:"waiting",
     questionId:null,
     acceptingAnswers:false,
-    eventId: Date.now().toString()
+    eventId:Date.now().toString()
   });
   currentTab="q";
   showTab("q");
 };
 
-/* =====================
-   Firestore監視
-===================== */
+/* =====================================================
+   Firestore state 監視
+===================================================== */
 onSnapshot(doc(db,"game","state"), snap=>{
   if(!snap.exists()) return;
-  state = snap.data();
-  updateUI(state);
+
+  updateUI(snap.data());
+
+  if(state.mode==="ranking"){
+    showRanking();
+  }
 
   if(currentTab==="a"){
     startAnswerListener();
   }
 });
 
-/* =====================
+/* =====================================================
    初期処理
-===================== */
+===================================================== */
 loadQuestions();
-showTab("q");   // ← 初期表示
+showTab("q");
