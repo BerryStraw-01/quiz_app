@@ -8,44 +8,73 @@
 
 <body>
 
-<h1>クイズ</h1>
+<!-- 背景 -->
+<div class="bg-circle bg1"></div>
+<div class="bg-circle bg2"></div>
 
-<!-- 参加 -->
-<div id="join" class="card">
-    <input id="name" placeholder="名前">
-    <button id="btnJoin">参加する</button>
+<div class="dot-left"></div>
+<div class="dot-right"></div>
+
+<!-- ✅ アプリ全体 -->
+<div class="app">
+
+    <!-- ===== ヘッダー ===== -->
+    <div class="header">
+
+        <div class="title-wrap">
+
+            <!-- キラキラ -->
+            <div class="sparkle title-s1"></div>
+            <div class="sparkle title-s2"></div>
+            <div class="sparkle title-s3"></div>
+            <div class="sparkle title-s4"></div>
+
+            <h1 class="title">クイズ</h1>
+            <div class="title-bar"></div>
+
+        </div>
+
+    </div>
+
+    <!-- ===== 中央カード ===== -->
+    <div class="card wait-card">
+
+        <div class="icon-wrap">
+
+            <div class="icon-bg"></div>
+
+            <!-- キラキラ -->
+            <div class="sparkle-card s1"></div>
+            <div class="sparkle-card s2"></div>
+            <div class="sparkle-card s3"></div>
+            <div class="sparkle-card s4"></div>
+            <div class="sparkle-card s5"></div>
+            <div class="sparkle-card s6"></div>
+
+            <!-- ✅ バツアイコン -->
+            <svg class="icon-hourglass" viewBox="0 0 24 24">
+                <defs>
+                    <linearGradient id="gradX" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#4facfe"/>
+                        <stop offset="100%" stop-color="#8a6cff"/>
+                    </linearGradient>
+                </defs>
+
+                <line x1="6" y1="6" x2="18" y2="18"
+                      stroke="url(#gradX)" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="18" y1="6" x2="6" y2="18"
+                      stroke="url(#gradX)" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+
+
+        </div>
+
+        <h2 class="wait-title">参加できません</h2>
+        <p class="wait-sub">クイズの開始をお待ちください</p>
+
+    </div>
+
 </div>
 
-<!-- 待機 -->
-<div id="wait" class="card" style="display:none;">
-    <h2>待機中</h2>
-</div>
-
-<!-- ブロック -->
-<div id="blocked" class="card" style="display:none;">
-    <h2>参加できません</h2>
-</div>
-
-<!-- 問題 -->
-<div id="quiz" class="card" style="display:none;">
-
-    <div id="q"></div>
-    <img id="qImg">
-
-    <div id="choices"></div>
-
-    <div id="result"></div>
-    <div id="answerText"></div>
-    <div id="scoreText"></div>
-
-</div>
-
-<!-- ランキング -->
-<div id="ranking" class="card" style="display:none;">
-    <h2>ランキング</h2>
-    <div id="rankList"></div>
-</div>
-
-<script type="module" src="index.js"></script>
 </body>
 </html>

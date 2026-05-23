@@ -1,136 +1,229 @@
+/* ======================
+   body（完全中央）
+====================== */
 body{
-  font-family:sans-serif;
   margin:0;
-  background:#f5f5f5;
-  padding:20px;
+  min-height:100vh;
+  font-family:sans-serif;
+
+  display:flex;
+  justify-content:center;
+
+  background:linear-gradient(180deg,#f7f9ff,#e5ebf5);
+  position:relative;
+  overflow-x:hidden;
 }
 
-/* タイトル */
-h1{
-  text-align:center;
-  font-size:6vw;
-}
-
-/* カード */
-.card{
-  background:white;
-  padding:30px;
-  border-radius:20px;
-  margin-bottom:25px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.1);
-}
-
-/* =====================
-   ✅ 名前入力
-===================== */
-#name{
-  width: 100%;
-  padding: 25px;
-  font-size: 40px;
-  border-radius: 16px;
-  border: 5px solid #5cc8ff;
-
-  box-sizing: border-box; /* ✅ これが核心 */
-}
-
-/* =====================
-   ✅ 参加ボタン（超巨大）
-===================== */
-#btnJoin{
+/* ======================
+   アプリ（中央の唯一の基準）
+====================== */
+.app{
   width:100%;
-  height:120px;
-  font-size:5vw;
-  line-height:1.05;
-  padding:0;
+  max-width:420px;
+  box-sizing:border-box;
 }
 
-/* 問題文 */
-#q{
+/* ======================
+   背景円
+====================== */
+.bg-circle{
+  position:fixed;
+  border-radius:50%;
+  z-index:-1;
+
+  background: radial-gradient(
+    circle,
+    rgba(180,200,255,0.65) 0%,
+    rgba(180,200,255,0.4) 45%,
+    rgba(180,200,255,0.15) 75%,
+    transparent 100%
+  );
+}
+
+.bg1{
+  width:420px;
+  height:420px;
+  top:-180px;
+  left:-180px;
+}
+
+.bg2{
+  width:320px;
+  height:320px;
+  bottom:-140px;
+  right:-140px;
+}
+
+/* ======================
+   ドット
+====================== */
+.dot-left,
+.dot-right{
+  position:fixed;
+  width:140px;
+  height:140px;
+
+  background-image: radial-gradient(#bcc7e6 2px, transparent 2px);
+  background-size:12px 12px;
+
+  opacity:0.35;
+  z-index:-1;
+}
+
+.dot-left{ left:20px; bottom:120px; }
+.dot-right{ right:20px; bottom:80px; }
+
+/* ======================
+   ヘッダー
+====================== */
+.header{
   text-align:center;
-  font-size:5.5vw;
-  margin-bottom:15px;
+  padding-top:50px;
 }
 
-/* 画像 */
-#qImg{
-  display:none;
-  max-width:90%;
-  margin:0 auto 15px;
-}
-
-/* =====================
-   ✅ 選択肢（ギリギリ文字）
-===================== */
-#choices{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:25px;
-}
-
-.choice{
-  padding:20px;
-  font-size:4vw;
-  line-height:1.1;
-  border-radius:20px;
-  color:white;
-}
-
-.c0{background:#e74c3c;}
-.c1{background:#3498db;}
-.c2{background:#f1c40f;color:black;}
-.c3{background:#2ecc71;}
-
-.dim{opacity:0.3;}
-.selected{outline:10px solid black;}
-
-.choice.disabled{
-  opacity:0.3;
-  pointer-events:none;
-}
-
-.choice.answer-correct{
-  opacity:1 !important;
-}
-
-/* 結果 */
-#result{
-  font-size:5vw;
-  text-align:center;
-}
-
-#answerText{
-  font-size:4.5vw;
-  text-align:center;
-}
-
-#scoreText{
-  font-size:4.8vw;
-  text-align:center;
+/* ======================
+   タイトル
+====================== */
+.title{
+  font-size:26px;
   font-weight:bold;
+  color:#2d3a5a;
 }
 
-/* ランキング */
-.rank{
-  padding:25px;
-  font-size:4.2vw;
-  margin:10px;
-  border-radius:16px;
+.title-bar{
+  width:65px;
+  height:5px;
+  border-radius:10px;
+  margin:8px auto;
+
+  background:linear-gradient(90deg,#4facfe,#8a6cff);
 }
 
-.top1{background:#ffe066;}
-.top2{background:#e0e0e0;}
-.top3{background:#f5c993;}
-.normal{background:white;border:2px solid #ccc;}
-
-/* 待機中・参加不可 画面を中央寄せ */
-#wait,
-#blocked {
-  text-align: center;
+/* ======================
+   ✅ タイトル基準（ここがポイント）
+====================== */
+.title-wrap{
+  position:relative;
+  display:inline-block;  /* ← これだけで中央 */
 }
 
-/* 見出しを少し大きく */
-#wait h2,
-#blocked h2 {
-  font-size: 4.5vw;
-  margin: 0;
+/* キラキラ（変更なし） */
+.sparkle{
+  position:absolute;
+  width:12px;
+  height:12px;
+
+  background:#b7c6f0;
+
+  clip-path:polygon(
+    50% 0%,60% 35%,100% 35%,
+    65% 55%,80% 100%,50% 75%,
+    20% 100%,35% 55%,0% 35%,40% 35%
+  );
+}
+
+/* ⭐ 位置そのまま */
+.title-s1{ top:-30px; left:-100px; }
+.title-s2{ top:50px; left:-50px; }
+.title-s3{ top:-5px; right:-150px; }
+.title-s4{ top:20px; right:-70px; }
+
+/* ======================
+   カード（完全中央）
+====================== */
+.card{
+  width:100%;
+  margin:30px auto 0;
+
+  background:rgba(255,255,255,0.95);
+
+  padding:30px;
+  border-radius:26px;
+
+  box-shadow:0 15px 40px rgba(0,0,0,0.08);
+}
+
+/* ======================
+   ✅ アイコン（ここも重要）
+====================== */
+.icon-wrap{
+  position:relative;
+  width:160px;
+  height:160px;
+
+  margin:0 auto 20px; /* ← これだけで中央 */
+
+  /* ❌ left / transform を完全削除 */
+}
+
+/* 円 */
+.icon-bg{
+  position:absolute;
+  width:140px;
+  height:140px;
+  top:10px;
+  left:10px;
+
+  background: radial-gradient(
+    circle,
+    #eef2ff 0%,
+    #d8e0f5 60%,
+    #f7f9ff 100%
+  );
+
+  border-radius:50%;
+}
+
+/* バツ */
+.icon-hourglass{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:60px;
+  height:60px;
+}
+
+/* ======================
+   カードキラキラ（そのまま）
+====================== */
+.sparkle-card{
+  position:absolute;
+  width:15px;
+  height:15px;
+
+  background:#b7c6f0;
+
+  clip-path:polygon(
+    50% 0%,60% 35%,100% 35%,
+    65% 55%,80% 100%,50% 75%,
+    20% 100%,35% 55%,0% 35%,40% 35%
+  );
+}
+
+/* ⭐ 位置そのまま */
+.s1{ top:15px; left:-35px; }
+.s2{ top:30px; right:-50px; }
+
+.s3{ bottom:25px; left:-45px; }
+.s4{ bottom:20px; right:-55px; }
+
+.s5{ top:75px; left:-85px; }
+.s6{ top:75px; right:-75px; }
+
+/* ======================
+   テキスト
+====================== */
+.wait-title{
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+  color:#2c395f;
+}
+
+.wait-sub{
+  text-align:center;
+  font-size:14px;
+  color:#5d6b8c;
+  margin-top:10px;
 }
