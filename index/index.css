@@ -75,10 +75,10 @@ html, body{
 ====================== */
 .sparkle-layer{
   position:fixed;
-  top:0;
+  top:44px;              /* ✅ ここが重要（iOS基準） */
   left:0;
   width:100vw;
-  height:120px;     /* タイトル付近だけ */
+  height:120px;
   pointer-events:none;
   z-index:2;
 }
@@ -115,13 +115,13 @@ html, body{
    カード
 ====================== */
 .card{
-  width:calc(100vw - 32px); /* ✅ 常に同じ横幅 */
-  margin:20px auto;
-
-  padding:20px;
-  border-radius:22px;
+  width:100%;
+  max-width:350px;      /* ✅ 375pxより一回り細い */
+  margin:14px auto;     /* ✅ 中央寄せ */
 
   background:white;
+  border-radius:22px;
+  padding:18px;         /* ✅ 中の余白も少し増やす */
   box-shadow:0 10px 24px rgba(0,0,0,.08);
 }
 
