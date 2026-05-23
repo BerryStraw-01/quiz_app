@@ -14,11 +14,11 @@ const db = getFirestore(initializeApp({
 }));
 
 /* =====================
-   state
+   state（初期値）
 ===================== */
 let state = {
-  mode: "waiting",
-  questionId: null,
+  mode: "waiting",      // ← デフォルトは待機
+  questionId: null,     // ← 初期は未選択
   acceptingAnswers: false,
   eventId: null
 };
@@ -42,7 +42,7 @@ onSnapshot(collection(db,"players"), snap=>{
 
   currentPlayerCount = count;
   document.getElementById("playerCount").innerText =
-    "参加人数： " + count + "人";
+    "参加人数：" + count + "人";
 });
 
 /* =====================
@@ -137,7 +137,7 @@ function showTab(t){
 }
 
 /* =====================
-   問題選択（画像どおり）
+   問題選択（下が唯一の操作点）
 ===================== */
 async function loadQuestions(){
   const snap = await getDocs(collection(db,"questions"));
@@ -147,7 +147,7 @@ async function loadQuestions(){
   snap.forEach(docSnap=>{
     const d = docSnap.data();
     html += `
-      <div class="q-card" data-no="${String(index).padStart(2,"0")}">
+      <div class="q-card" data-no="${String(index).padStart(2,"0")}" data-id="${index}">
         ${d.text}
       </div>
     `;
@@ -156,11 +156,12 @@ async function loadQuestions(){
 
   document.getElementById("questionList").innerHTML = html;
 
-  snap.forEach((docSnap,i)=>{
-    const id = docSnap.id.replace("q","");
-    document.querySelectorAll(".q-card")[i].onclick = ()=>{
+  document.querySelectorAll(".q-card").forEach(card=>{
+    card.onclick = ()=>{
+      const qid = Number(card.dataset.id);
+
       setDoc(doc(db,"game","state"),{
-        questionId: Number(id),
+        questionId: qid,
         mode: "question",
         acceptingAnswers: false
       },{ merge:true });
@@ -169,18 +170,37 @@ async function loadQuestions(){
 }
 
 /* =====================
-   UI更新
+   UI更新（最重要）
 ===================== */
 function updateUI(s){
 
+  // 進行ボタン
   setMode("btnJoin",     s.mode==="join");
   setMode("btnWait",     s.mode==="waiting");
   setMode("btnRanking",  s.mode==="ranking");
   setMode("btnAnswer",   s.mode==="answer");
-  setMode("btnQuestion", s.mode==="question");
 
+  // 「問題」ボタンは「選択されているときのみON」
+  setMode("btnQuestion", s.mode==="question" && s.questionId !== null);
+  document.getElementById("btnQuestion").disabled = true;
+
+  // トグル＋テキスト
   const toggle = document.getElementById("btnToggle");
   toggle.classList.toggle("on", s.acceptingAnswers);
+
+  const toggleText = document.querySelector(".toggle-sub");
+  toggleText.innerText =
+    s.acceptingAnswers
+      ? "回答を受け付けています"
+      : "回答を受け付けていません";
+
+  // 問題一覧の選択状態
+  document.querySelectorAll(".q-card").forEach(card=>{
+    card.classList.toggle(
+      "active",
+      Number(card.dataset.id) === s.questionId
+    );
+  });
 }
 
 function setMode(id, active){
@@ -190,20 +210,25 @@ function setMode(id, active){
 /* =====================
    ボタン操作
 ===================== */
+function clearQuestionAndSetMode(newMode){
+  setDoc(doc(db,"game","state"),{
+    mode: newMode,
+    questionId: null,           // ← 重要：必ずクリア
+    acceptingAnswers: false
+  },{ merge:true });
+}
+
 document.getElementById("btnJoin").onclick =
-  ()=>setDoc(doc(db,"game","state"),{ mode:"join" },{ merge:true });
+  ()=>clearQuestionAndSetMode("join");
 
 document.getElementById("btnWait").onclick =
-  ()=>setDoc(doc(db,"game","state"),{ mode:"waiting" },{ merge:true });
+  ()=>clearQuestionAndSetMode("waiting");
 
 document.getElementById("btnRanking").onclick =
-  ()=>setDoc(doc(db,"game","state"),{ mode:"ranking" },{ merge:true });
+  ()=>clearQuestionAndSetMode("ranking");
 
 document.getElementById("btnAnswer").onclick =
-  ()=>setDoc(doc(db,"game","state"),{ mode:"answer" },{ merge:true });
-
-document.getElementById("btnQuestion").onclick =
-  ()=>setDoc(doc(db,"game","state"),{ mode:"question" },{ merge:true });
+  ()=>clearQuestionAndSetMode("answer");
 
 document.getElementById("btnToggle").onclick =
   ()=>setDoc(doc(db,"game","state"),

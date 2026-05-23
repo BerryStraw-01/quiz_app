@@ -15,13 +15,11 @@
     <!-- 参加人数 -->
     <div class="pill-center">
         <div id="playerCount" class="pill-text">
-      <span class="icon">
-        <!-- 人＋ -->
+      <span class="pill-icon">
+        <!-- 人アイコン -->
         <svg viewBox="0 0 24 24">
-          <circle cx="9" cy="6.8" r="2.8"/>
-          <path d="M4.6 16.8c0-2.4 2.6-4 4.4-4s4.4 1.6 4.4 4"/>
-          <line x1="17" y1="7" x2="17" y2="10"/>
-          <line x1="15.6" y1="8.5" x2="18.4" y2="8.5"/>
+          <circle cx="12" cy="7" r="3"/>
+          <path d="M6 18c0-3 3-5 6-5s6 2 6 5"/>
         </svg>
       </span>
             参加人数：0人
@@ -32,29 +30,24 @@
     <div class="card">
         <div class="mode-row">
 
-            <button id="btnJoin" class="mode-btn join">
-                <!-- 人＋ -->
+            <button id="btnJoin" class="mode-btn blue">
                 <svg viewBox="0 0 24 24">
-                    <circle cx="9" cy="6.8" r="2.8"/>
-                    <path d="M4.6 16.8c0-2.4 2.6-4 4.4-4s4.4 1.6 4.4 4"/>
-                    <line x1="17" y1="7" x2="17" y2="10"/>
-                    <line x1="15.6" y1="8.5" x2="18.4" y2="8.5"/>
+                    <circle cx="12" cy="7" r="3"/>
+                    <path d="M6 18c0-3 3-5 6-5s6 2 6 5"/>
                 </svg>
-                <div>参加受付</div>
+                <span>参加受付</span>
             </button>
 
-            <button id="btnWait" class="mode-btn wait">
-                <!-- 時計 -->
+            <button id="btnWait" class="mode-btn blue">
                 <svg viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="8"/>
                     <line x1="12" y1="8" x2="12" y2="12"/>
                     <line x1="12" y1="12" x2="15" y2="14"/>
                 </svg>
-                <div>待機</div>
+                <span>待機</span>
             </button>
 
-            <button id="btnRanking" class="mode-btn ranking">
-                <!-- トロフィー -->
+            <button id="btnRanking" class="mode-btn blue">
                 <svg viewBox="0 0 24 24"
                      fill="none"
                      stroke="currentColor"
@@ -93,36 +86,34 @@
                     <line x1="9" y1="20" x2="15" y2="20"/>
 
                 </svg>
-                <div>ランキング</div>
+                <span>ランキング</span>
             </button>
 
-            <button id="btnAnswer" class="mode-btn answer">
-                <!-- チェック -->
+            <button id="btnAnswer" class="mode-btn green">
                 <svg viewBox="0 0 24 24">
                     <rect x="4" y="4" width="16" height="16" rx="3"/>
                     <path d="M7.5 12l3 3 6-6"/>
                 </svg>
-                <div>解答</div>
+                <span>解答</span>
             </button>
 
-            <button id="btnQuestion" class="mode-btn question">
-                <!-- ? -->
+            <button id="btnQuestion" class="mode-btn yellow">
                 <svg viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="8"/>
                     <path d="M9 9a3 3 0 1 1 6 2c-2 1-3 2-3 4"/>
                     <circle cx="12" cy="17" r="0.8"/>
                 </svg>
-                <div>問題</div>
+                <span>問題</span>
             </button>
 
         </div>
     </div>
 
-    <!-- 回答ON -->
+    <!-- 回答 ON/OFF -->
     <div class="card toggle-card">
         <div class="toggle-left">
             <div class="toggle-check">✓</div>
-            <div>
+            <div class="toggle-text">
                 <div class="toggle-title">回答：ON</div>
                 <div class="toggle-sub">回答を受け付けています</div>
             </div>
@@ -142,12 +133,20 @@
         </div>
 
         <div id="tab-a-area" style="display:none;">
-            <div id="answerStatus"></div>
+            <div id="answerStatus" class="answer-panel"></div>
         </div>
     </div>
 
     <!-- 初期化 -->
-    <button class="reset">初期化（リセット）</button>
+    <button class="reset">
+    <span class="reset-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M4 12a8 8 0 1 1 5.5 7.5"/>
+        <polyline points="4 5 4 11 10 11"/>
+      </svg>
+    </span>
+        初期化（リセット）
+    </button>
 
 </div>
 
