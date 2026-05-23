@@ -122,31 +122,37 @@
          クイズ画面
     ====================== -->
     <div id="quiz" style="display:none;">
+
         <div class="header">
             <h1 class="title">クイズ</h1>
             <div class="title-bar"></div>
         </div>
 
         <div class="card quiz-card">
+
             <div id="q"></div>
             <img id="qImg">
-            <div id="choices"></div>
-            <div id="quizStatus" class="quiz-status">回答受付中</div>
 
-            <!-- ✅ 結果表示（カード内） -->
+            <div id="choices"></div>
+            <div id="quizStatus" class="quiz-status"></div>
+
+            <!-- ✅ 結果表示（ここが重要） -->
             <div id="answerResult" class="answer-result" style="display:none;">
                 <div id="resultText" class="result-text"></div>
 
                 <div class="answer-detail">
                     あなたの解答：<span id="myAnswer"></span>
                 </div>
+
                 <div class="answer-detail">
                     正解：<span id="correctAnswer"></span>
                 </div>
+
                 <div class="score-text">
                     現在のスコア：<span id="score"></span>
                 </div>
             </div>
+
         </div>
     </div>
 

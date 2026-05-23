@@ -159,9 +159,10 @@ body{
 }
 
 #q{
-  font-size:17px;
-  line-height:1.6;
+  font-size:26px;      /* ← 17px → 26px に拡大 */
+  line-height:1.8;     /* 読みやすさ向上 */
   text-align:center;
+  font-weight:600;     /* 視認性アップ */
 }
 
 #qImg{

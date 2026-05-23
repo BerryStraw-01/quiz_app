@@ -72,18 +72,38 @@ document.getElementById("btnJoin").onclick = async ()=>{
 ====================== */
 function render(q, showAnswer){
 
-  document.getElementById("q").innerText = q.text;
+  /* ======================
+     問題文
+  ====================== */
+  const qEl = document.getElementById("q");
+  qEl.textContent = q.text ?? "";
 
+  /* ======================
+     画像（確実に表示 / 非表示）
+  ====================== */
   const img = document.getElementById("qImg");
   if(img){
     if(q.image){
+      img.onload = () => {
+        img.style.display = "block";
+      };
+
+      img.onerror = () => {
+        // ✅ 読み込み失敗時は完全に隠す
+        img.style.display = "none";
+        img.src = "";
+      };
+
       img.src = q.image;
-      img.style.display = "block";
     }else{
       img.style.display = "none";
+      img.src = "";
     }
   }
 
+  /* ======================
+     選択肢
+  ====================== */
   const choicesEl = document.getElementById("choices");
   choicesEl.innerHTML = "";
 
@@ -131,17 +151,21 @@ function render(q, showAnswer){
     div.innerHTML = `${labels[i]}<br>${c}`;
 
     if(clickable){
-      div.onclick = ()=> answer(i);
+      div.onclick = () => answer(i);
     }
 
     choicesEl.appendChild(div);
   });
 
+  /* ======================
+     状態表示
+  ====================== */
   const status = document.getElementById("quizStatus");
-  status.innerText = currentState.acceptingAnswers
+  status.textContent = currentState.acceptingAnswers
     ? "回答受付中"
     : "回答受付終了";
 }
+``
 
 /* ======================
    得点加算
@@ -197,19 +221,39 @@ onSnapshot(doc(db,"game","state"), async snap=>{
   if(currentState.mode === "question"){
     show("quiz");
 
-    const qSnap = await getDoc(doc(db,"questions","q"+currentState.questionId));
+    // 問題データ取得
+    const qSnap = await getDoc(
+      doc(db, "questions", "q" + currentState.questionId)
+    );
     if(!qSnap.exists()) return;
+    const q = qSnap.data();
 
+    /* ✅ 新しい問題のときだけ状態をリセット */
     if(currentState.questionId !== lastQuestionId){
       myChoice = null;
       hasAnswered = false;
       lastQuestionId = currentState.questionId;
     }
 
+    /* ✅ 結果表示は必ず非表示に戻す */
     const resultBox = document.getElementById("answerResult");
-    if(resultBox) resultBox.style.display = "none";
+    if(resultBox){
+      resultBox.style.display = "none";
 
-    render(qSnap.data(), false);
+      // 中身も一度リセット（ゴースト防止）
+      const resultText = document.getElementById("resultText");
+      const myAnswerEl = document.getElementById("myAnswer");
+      const correctAnswerEl = document.getElementById("correctAnswer");
+      const scoreEl = document.getElementById("score");
+
+      if(resultText) resultText.textContent = "";
+      if(myAnswerEl) myAnswerEl.textContent = "";
+      if(correctAnswerEl) correctAnswerEl.textContent = "";
+      if(scoreEl) scoreEl.textContent = "";
+    }
+
+    /* ✅ 問題表示（解答前） */
+    render(q, false);
     return;
   }
 
@@ -227,18 +271,54 @@ onSnapshot(doc(db,"game","state"), async snap=>{
     if(!qSnap.exists()) return;
     const q = qSnap.data();
 
+    // 自分の回答を復元
     if(aSnap.exists()){
       myChoice = aSnap.data().choice;
       hasAnswered = true;
+    }else{
+      myChoice = null;
+      hasAnswered = false;
     }
 
     lastQuestionId = currentState.questionId;
 
+    // 選択肢表示（正解ハイライト）
     render(q, true);
+
+    // スコア加算（1回だけ）
     await addScore();
 
+    /* ✅ 結果UIに中身を書き込む（ここが今まで無かった） */
     const resultBox = document.getElementById("answerResult");
-    if(resultBox) resultBox.style.display = "block";
+    if(resultBox){
+      resultBox.style.display = "block";
+
+      const resultText = document.getElementById("resultText");
+      const myAnswerEl = document.getElementById("myAnswer");
+      const correctAnswerEl = document.getElementById("correctAnswer");
+      const scoreEl = document.getElementById("score");
+
+      // 正解 / 不正解
+      if(myChoice === q.answer){
+        resultText.textContent = "正解！";
+        resultText.className = "result-text correct";
+      }else{
+        resultText.textContent = "不正解";
+        resultText.className = "result-text wrong";
+      }
+
+      // あなたの解答
+      myAnswerEl.textContent =
+        myChoice !== null ? q.choices[myChoice] : "未回答";
+
+      // 正解
+      correctAnswerEl.textContent = q.choices[q.answer];
+
+      // スコア
+      const pSnap = await getDoc(doc(db,"players",userId));
+      scoreEl.textContent = pSnap.data()?.score ?? 0;
+    }
+
     return;
   }
 
