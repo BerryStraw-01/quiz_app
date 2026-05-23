@@ -16,7 +16,6 @@
     <div class="pill-center">
         <div id="playerCount" class="pill-text">
       <span class="pill-icon">
-        <!-- 人アイコン -->
         <svg viewBox="0 0 24 24">
           <circle cx="12" cy="7" r="3"/>
           <path d="M6 18c0-3 3-5 6-5s6 2 6 5"/>
@@ -89,6 +88,7 @@
                 <span>ランキング</span>
             </button>
 
+            <!-- ✅ 解答ボタン -->
             <button id="btnAnswer" class="mode-btn green">
                 <svg viewBox="0 0 24 24">
                     <rect x="4" y="4" width="16" height="16" rx="3"/>
@@ -109,15 +109,33 @@
         </div>
     </div>
 
-    <!-- 回答 ON/OFF -->
-    <div class="card toggle-card">
+    <!-- ✅ 回答 ON / OFF トグル（完成版） -->
+
+    <div class="card toggle-card off" id="answerToggleCard">
+
         <div class="toggle-left">
-            <div class="toggle-check">✓</div>
+
+            <!-- ✅ チェック / バツ SVG -->
+            <div class="toggle-icon">
+                <!-- ON -->
+                <svg class="icon-check" viewBox="0 0 24 24">
+                    <path d="M5 13l4 4L19 7"/>
+                </svg>
+
+                <!-- OFF -->
+                <svg class="icon-cross" viewBox="0 0 24 24">
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                </svg>
+            </div>
+
             <div class="toggle-text">
-                <div class="toggle-title">回答：ON</div>
-                <div class="toggle-sub">回答を受け付けています</div>
+                <div class="toggle-title">回答：OFF</div>
+                <div class="toggle-sub">回答を受け付けていません</div>
             </div>
         </div>
+
+        <!-- iOS トグル -->
         <div id="btnToggle" class="ios-toggle"></div>
     </div>
 

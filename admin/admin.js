@@ -287,19 +287,32 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
                setActive("btnQuestion", s.questionId !== null);
                setActive("btnAnswer", s.mode==="answer");
 
-               const toggle = document.getElementById("btnToggle");
+               const toggleBtn  = document.getElementById("btnToggle");        // iOSスイッチ
+               const toggleCard = document.getElementById("answerToggleCard"); // ✅ 丸アイコン側
                const title  = document.querySelector(".toggle-title");
                const sub    = document.querySelector(".toggle-sub");
 
                if(s.acceptingAnswers){
-                 toggle.classList.add("on");
+                 // iOSトグル
+                 toggleBtn.classList.add("on");
+
+                 // ✅ 緑丸＋白チェック
+                 toggleCard.classList.add("on");
+                 toggleCard.classList.remove("off");
+
                  title.textContent = "回答：ON";
                  sub.textContent   = "回答を受け付けています";
                }else{
-                 toggle.classList.remove("on");
+                 toggleBtn.classList.remove("on");
+
+                 // ✅ 赤丸＋白バツ
+                 toggleCard.classList.add("off");
+                 toggleCard.classList.remove("on");
+
                  title.textContent = "回答：OFF";
                  sub.textContent   = "回答を受け付けていません";
                }
+               ``
              }
 
              function setActive(id,on){

@@ -432,54 +432,73 @@ body{
 }
 
 /* ======================
-   回答 ON / OFF トグル
+   回答 ON / OFF トグル（最終確定版）
 ====================== */
-.answer-toggle{
-  width:44px;
-  height:44px;
-  border:none;
-  border-radius:50%;
-  background:#f5f5f5;
-  cursor:pointer;
-  position:relative;
+
+/* トグル全体 */
+.toggle-card{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
-/* 共通 */
-.answer-toggle svg{
+/* 左側 */
+.toggle-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+/* ✅ 丸アイコン本体 */
+.toggle-icon{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  position:relative;
+  flex-shrink:0;
+}
+
+/* ✅ SVG 共通（白アイコン） */
+.toggle-icon svg{
   position:absolute;
   top:50%;
   left:50%;
-  width:22px;
-  height:22px;
-  transform:translate(-50%,-50%);
+  width:18px;
+  height:18px;
+  transform:translate(-50%, -50%);
   fill:none;
+  stroke:white;
   stroke-width:3;
   stroke-linecap:round;
   stroke-linejoin:round;
 }
 
-/* ✅ ON：緑チェック */
-.answer-toggle.on{
-  background:#e9f8f0;
+/* ======================
+   回答 ON（緑）
+====================== */
+.toggle-card.on .toggle-icon{
+  background:#44b38b;       /* 緑丸 */
 }
 
-.answer-toggle.on .icon-check{
-  stroke:#2ecc71;
+.toggle-card.on .icon-check{
+  display:block;
 }
 
-.answer-toggle.on .icon-cross{
+.toggle-card.on .icon-cross{
   display:none;
 }
 
-/* ❌ OFF：赤バツ */
-.answer-toggle.off{
-  background:#fdeeee;
+/* ======================
+   回答 OFF（赤）
+====================== */
+.toggle-card.off .toggle-icon{
+  background:#e25555;       /* 赤丸 */
 }
 
-.answer-toggle.off .icon-cross{
-  stroke:#e74c3c;
+.toggle-card.off .icon-cross{
+  display:block;
 }
 
-.answer-toggle.off .icon-check{
+.toggle-card.off .icon-check{
   display:none;
 }
