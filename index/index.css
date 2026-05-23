@@ -1,5 +1,5 @@
 /* ======================
-   body（中央）
+   body
 ====================== */
 body{
   margin:0;
@@ -10,22 +10,23 @@ body{
   justify-content:center;
 
   background:linear-gradient(180deg,#f7f9ff,#e5ebf5);
+
   position:relative;
   overflow-x:hidden;
 }
 
 /* ======================
-   アプリ
+   アプリ（中央）
 ====================== */
 .app{
   width:100%;
   max-width:420px;
   box-sizing:border-box;
-  padding:0 16px; /* ✅ スマホ余白 */
+  padding:0 16px;
 }
 
 /* ======================
-   背景円
+   ✅ 背景円（修正済み）
 ====================== */
 .bg-circle{
   position:fixed;
@@ -35,23 +36,51 @@ body{
   background: radial-gradient(
     circle,
     rgba(180,200,255,0.5) 0%,
-    rgba(180,200,255,0.3) 50%,
+    rgba(180,200,255,0.25) 50%,
     transparent 100%
   );
 }
 
+/* ✅ 見える位置に修正 */
 .bg1{
-  width:300px;
-  height:300px;
-  top:-120px;
-  left:-120px;
+  width:280px;
+  height:280px;
+  top:-100px;
+  left:-100px;
 }
 
 .bg2{
   width:220px;
   height:220px;
-  bottom:-100px;
-  right:-100px;
+  bottom:-80px;
+  right:-80px;
+}
+
+/* ======================
+   ✅ ドット（復活）
+====================== */
+.dot-left,
+.dot-right{
+  position:fixed;
+  width:120px;
+  height:120px;
+
+  background-image: radial-gradient(#bcc7e6 2px, transparent 2px);
+  background-size:12px 12px;
+
+  opacity:0.3;
+  z-index:-1;
+}
+
+/* ✅ 位置調整 */
+.dot-left{
+  left:10px;
+  bottom:100px;
+}
+
+.dot-right{
+  right:10px;
+  bottom:80px;
 }
 
 /* ======================
@@ -59,14 +88,14 @@ body{
 ====================== */
 .header{
   text-align:center;
-  padding-top:40px;
+  padding-top:35px;
 }
 
 /* ======================
    タイトル
 ====================== */
 .title{
-  font-size:22px;  /* ✅ 小さく */
+  font-size:22px;
   font-weight:bold;
   color:#2d3a5a;
 }
@@ -81,7 +110,7 @@ body{
 }
 
 /* ======================
-   タイトルキラキラ
+   タイトルキラキラ（そのまま）
 ====================== */
 .title-wrap{
   position:relative;
@@ -102,7 +131,7 @@ body{
   );
 }
 
-/* ✅ 位置そのまま */
+/* ✅ 非対称そのまま */
 .title-s1{ top:-25px; left:-80px; }
 .title-s2{ top:35px; left:-40px; }
 .title-s3{ top:-5px; right:-100px; }
@@ -117,7 +146,7 @@ body{
 
   background:white;
   padding:24px;
-  border-radius:22px;
+  border-radius:20px;
 
   box-shadow:0 10px 25px rgba(0,0,0,0.08);
 }
@@ -127,11 +156,12 @@ body{
 ====================== */
 .icon-wrap{
   position:relative;
-  width:100px;  /* ✅ 小さく */
-  height:100px;
+  width:110px;
+  height:110px;
   margin:0 auto 15px;
 }
 
+/* 円 */
 .icon-bg{
   position:absolute;
   width:100%;
@@ -146,19 +176,18 @@ body{
   border-radius:50%;
 }
 
-/* ✅ バツアイコン（小さく） */
+/* ✅ バツアイコン */
 .icon-hourglass{
   position:absolute;
   top:50%;
   left:50%;
   transform:translate(-50%,-50%);
-
   width:45px;
   height:45px;
 }
 
 /* ======================
-   カードキラキラ
+   カードキラキラ（そのまま）
 ====================== */
 .sparkle-card{
   position:absolute;
@@ -174,8 +203,8 @@ body{
   );
 }
 
-/* ✅ 位置そのまま（縮小のみ） */
-.s1{ top:5px; left:-20px; }
+/* ✅ 位置は一切変更なし */
+.s1{ top:8px; left:-20px; }
 .s2{ top:15px; right:-25px; }
 
 .s3{ bottom:15px; left:-25px; }
@@ -189,7 +218,7 @@ body{
 ====================== */
 .wait-title{
   text-align:center;
-  font-size:18px;  /* ✅ 調整 */
+  font-size:18px;
   font-weight:bold;
   color:#2c395f;
 }
@@ -202,7 +231,7 @@ body{
 }
 
 /* ======================
-   ✅ PC用補正
+   PC用
 ====================== */
 @media(min-width:768px){
 
