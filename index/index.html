@@ -19,7 +19,6 @@
     <div class="sparkle title-s4"></div>
 </div>
 
-
 <div class="phone">
 
     <!-- ======================
@@ -28,14 +27,12 @@
     <div id="join">
         <div class="header">
             <div class="title-wrap">
-
                 <h1 class="title">クイズ</h1>
                 <div class="title-bar"></div>
-
             </div>
         </div>
 
-        <div class="card">
+        <div class="card join-card">
             <input id="name" placeholder="名前を入力してください">
             <button id="btnJoin">参加する</button>
         </div>
@@ -63,28 +60,16 @@
                         </linearGradient>
                     </defs>
 
-                    <!-- 上の五角形（外枠） -->
                     <path d="M7 5 L17 5 L15 9 L12 12 L9 9 Z"
-                          fill="none"
-                          stroke="url(#gradHour)"
-                          stroke-width="1.6"
-                          stroke-linejoin="round"/>
+                          fill="none" stroke="url(#gradHour)" stroke-width="1.6"/>
 
-                    <!-- 下の五角形（外枠） -->
                     <path d="M9 15 L12 12 L15 15 L17 19 L7 19 Z"
-                          fill="none"
-                          stroke="url(#gradHour)"
-                          stroke-width="1.6"
-                          stroke-linejoin="round"/>
+                          fill="none" stroke="url(#gradHour)" stroke-width="1.6"/>
 
-                    <!-- ✅ 上のガラス：砂（多め・面で埋まる） -->
                     <path d="M8.5 8.0 L15.5 8.0 L14.2 10.5 L12 12 L9.8 10.5 Z"
-                          fill="url(#gradHour)"
-                          opacity="0.85"/>
+                          fill="url(#gradHour)" opacity="0.85"/>
 
-                    <!-- 落ちる砂 -->
-                    <circle cx="12" cy="15.2" r="0.7"
-                            fill="url(#gradHour)"/>
+                    <circle cx="12" cy="15.2" r="0.7" fill="url(#gradHour)"/>
                 </svg>
             </div>
 
@@ -99,26 +84,15 @@
     <div id="blocked" style="display:none;">
         <div class="header">
             <div class="title-wrap">
-
                 <h1 class="title">クイズ</h1>
                 <div class="title-bar"></div>
-
-
             </div>
         </div>
 
-        <div class="card">
+        <div class="card blocked-card">
             <div class="icon-wrap">
                 <div class="icon-bg"></div>
 
-                <div class="sparkle s1"></div>
-                <div class="sparkle s2"></div>
-                <div class="sparkle s3"></div>
-                <div class="sparkle s4"></div>
-                <div class="sparkle s5"></div>
-                <div class="sparkle s6"></div>
-
-                <!-- バツ -->
                 <svg class="icon-hourglass" viewBox="0 0 24 24">
                     <defs>
                         <linearGradient id="gradX" x1="0" y1="0" x2="1" y2="1">
@@ -128,9 +102,14 @@
                     </defs>
 
                     <line x1="6" y1="6" x2="18" y2="18"
-                          stroke="url(#gradX)" stroke-width="2.5" stroke-linecap="round"/>
+                          stroke="url(#gradX)"
+                          stroke-width="2.8"
+                          stroke-linecap="round"/>
+
                     <line x1="18" y1="6" x2="6" y2="18"
-                          stroke="url(#gradX)" stroke-width="2.5" stroke-linecap="round"/>
+                          stroke="url(#gradX)"
+                          stroke-width="2.8"
+                          stroke-linecap="round"/>
                 </svg>
             </div>
 
@@ -140,120 +119,48 @@
     </div>
 
     <!-- ======================
-     回答画面（問題表示）
-====================== -->
-    <!-- ======================
-     回答画面（問題表示）
-====================== -->
-    <!-- ======================
-     問題表示画面
-====================== -->
+         クイズ画面
+    ====================== -->
     <div id="quiz" style="display:none;">
-
         <div class="header">
             <h1 class="title">クイズ</h1>
             <div class="title-bar"></div>
         </div>
 
         <div class="card quiz-card">
-
-            <!-- 問題文 -->
-            <div id="q" class="question-text"></div>
-
-            <!-- ✅ 画像（ある時だけ表示） -->
-            <img id="qImg" />
-
-            <!-- 選択肢 -->
+            <div id="q"></div>
+            <img id="qImg">
             <div id="choices"></div>
-
-            <!-- 状態表示 -->
             <div id="quizStatus" class="quiz-status">回答受付中</div>
 
-        </div>
-        <!-- ✅ 解答結果表示 -->
-        <div id="answerResult" class="answer-result" style="display:none;">
-            <div id="resultText" class="result-text"></div>
+            <!-- ✅ 結果表示（カード内） -->
+            <div id="answerResult" class="answer-result" style="display:none;">
+                <div id="resultText" class="result-text"></div>
 
-            <div class="answer-detail">
-                あなたの解答：
-                <span id="myAnswer"></span>
+                <div class="answer-detail">
+                    あなたの解答：<span id="myAnswer"></span>
+                </div>
+                <div class="answer-detail">
+                    正解：<span id="correctAnswer"></span>
+                </div>
+                <div class="score-text">
+                    現在のスコア：<span id="score"></span>
+                </div>
             </div>
-
-            <div class="answer-detail">
-                正解：
-                <span id="correctAnswer"></span>
-            </div>
-
-            <div class="score-text">
-                現在のスコア：
-                <span id="score"></span>
-            </div>
-        </div>
-        ``
-    </div>
-
-    <!-- ======================
-     解答画面（結果表示）
-====================== -->
-    <div id="answer" style="display:none;">
-
-        <div class="header">
-            <h1 class="title">結果</h1>
-            <div class="title-bar"></div>
-        </div>
-
-        <div class="card answer-card">
-
-            <div class="result-text correct">
-                正解！
-            </div>
-            <!-- 不正解のときは class="result-text wrong" -->
-
-            <div class="answer-info">
-                正解は <span class="answer-number">②</span> でした
-            </div>
-
-            <div class="score-text">
-                現在のスコア：<span id="score">3</span>
-            </div>
-
         </div>
     </div>
 
     <!-- ======================
-     ランキング画面
-====================== -->
+         ランキング
+    ====================== -->
     <div id="ranking" style="display:none;">
-
         <div class="header">
             <h1 class="title">ランキング</h1>
             <div class="title-bar"></div>
         </div>
 
         <div class="card">
-
-            <div id="rankList" class="ranking-list">
-
-                <div class="rank-row rank1">
-                    <div class="rank">1位</div>
-                    <div class="rank-name">Alice</div>
-                    <div class="rank-score">5点</div>
-                </div>
-
-                <div class="rank-row rank2">
-                    <div class="rank">2位</div>
-                    <div class="rank-name">Bob</div>
-                    <div class="rank-score">4点</div>
-                </div>
-
-                <div class="rank-row rank3">
-                    <div class="rank">3位</div>
-                    <div class="rank-name">Carol</div>
-                    <div class="rank-score">3点</div>
-                </div>
-
-            </div>
-
+            <div id="rankList"></div>
         </div>
     </div>
 

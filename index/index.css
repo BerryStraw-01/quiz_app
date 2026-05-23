@@ -47,7 +47,9 @@ body{
    ヘッダ
 ====================== */
 .header{
+  width:100%;
   text-align:center;
+  margin-bottom:12px;
 }
 
 .title{
@@ -58,10 +60,40 @@ body{
 .title-bar{
   width:60px;
   height:4px;
-  margin:6px auto;
+  margin:6px auto 0;
   border-radius:10px;
   background:linear-gradient(90deg,#4facfe,#8a6cff);
 }
+
+/* ======================
+   キラキラ（タイトル装飾）
+====================== */
+.sparkle-layer{
+  position:absolute;
+  top:24px;
+  left:0;
+  width:100%;
+  height:120px;
+  pointer-events:none;
+  z-index:1;
+}
+
+.sparkle{
+  position:absolute;
+  width:10px;
+  height:10px;
+  background:#b7c6f0;
+  clip-path:polygon(
+    50% 0%,60% 35%,100% 35%,
+    65% 55%,80% 100%,50% 75%,
+    20% 100%,35% 55%,0% 35%,40% 35%
+  );
+}
+
+.title-s1{ top:18px; left:calc(50% - 140px); }
+.title-s2{ top:48px; left:calc(50% - 90px); }
+.title-s3{ top:18px; left:calc(50% + 100px); }
+.title-s4{ top:48px; left:calc(50% + 150px); }
 
 /* ======================
    カード
@@ -77,7 +109,48 @@ body{
 }
 
 /* ======================
-   問題表示
+   アイコン（待機・参加不可）
+====================== */
+.icon-wrap{
+  position:relative;
+  width:120px;
+  height:120px;
+  margin:0 auto 16px;
+}
+
+.icon-bg{
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  background:radial-gradient(circle,#eef2ff,#d8e0f5);
+}
+
+.icon-hourglass{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:64px;
+  height:64px;
+}
+
+/* ======================
+   テキスト（待機・参加不可）
+====================== */
+.wait-title{
+  text-align:center;
+  font-size:18px;
+  font-weight:bold;
+}
+
+.wait-sub{
+  text-align:center;
+  font-size:13px;
+  margin-top:6px;
+}
+
+/* ======================
+   クイズ画面
 ====================== */
 .quiz-card{
   display:flex;
@@ -109,61 +182,48 @@ body{
   gap:12px;
 }
 
-/* 選択肢本体 */
 .choice{
   display:flex;
   align-items:center;
   justify-content:center;
-
   min-height:56px;
   padding:14px;
-
   border-radius:14px;
   font-size:15px;
   line-height:1.4;
-
   color:white;
   cursor:pointer;
   user-select:none;
-
   transition:0.2s;
 }
 
-/* 色 */
 .c0{ background:#e74c3c; }
 .c1{ background:#3498db; }
 .c2{ background:#f1c40f; color:black; }
 .c3{ background:#2ecc71; }
 
+/* 選択状態 */
 .choice.selected{
-  outline:3px solid #000;   /* ✅ 黒枠 */
-  opacity:0.35;             /* ✅ 薄い */
+  outline:3px solid #000;
+  opacity:0.35;
 }
 
-/* ======================
-   正解（解答表示時）
-====================== */
-/* ✅ 正解は必ず最優先 */
-.choice.correct{
-  opacity:1 !important;
-  outline:none;
-}
-
-
-/* ======================
-   その他
-====================== */
 .choice.dim{
   opacity:0.25;
 }
 
-/* ======================
-   押せない
-====================== */
+/* 正解（最優先） */
+.choice.correct,
+.choice.correct.selected,
+.choice.correct.dim,
+.choice.correct.disabled{
+  opacity:1;
+  outline:none;
+}
+
+/* 押せない */
 .choice.disabled{
   pointer-events:none;
-  opacity:0.4;
-  filter:grayscale(0.3);
 }
 
 /* ======================
@@ -244,6 +304,34 @@ body{
 .rank-name{ flex:1; }
 .rank-score{ font-weight:bold; color:#5c6cff; }
 
-.rank1{ border:2px solid #ffd54f; }
-.rank2{ border:2px solid #cfd8dc; }
-.rank3{ border:2px solid #ffcc80; }
+/* ======================
+   参加画面（名前入力）
+====================== */
+#join .card{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+#name{
+  width:100%;
+  padding:14px 16px;
+  font-size:16px;
+  border-radius:14px;
+  border:2px solid #5c6cff;
+  outline:none;
+}
+
+#name::placeholder{
+  color:#aaa;
+}
+
+#btnJoin{
+  height:52px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(90deg,#4facfe,#8a6cff);
+  color:white;
+  font-size:16px;
+  font-weight:bold;
+}

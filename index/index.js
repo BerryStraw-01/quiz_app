@@ -24,9 +24,10 @@ const db = getFirestore(initializeApp({
 let userId = localStorage.getItem("userId");
 let savedEventId = localStorage.getItem("eventId");
 
-let myChoice = null;
 let currentState = null;
+let myChoice = null;
 let hasAnswered = false;
+let lastQuestionId = null;
 
 /* ======================
    画面切替
@@ -36,7 +37,6 @@ function show(id){
     const el = document.getElementById(x);
     if(el) el.style.display = "none";
   });
-
   const target = document.getElementById(id);
   if(target) target.style.display = "block";
 }
@@ -58,7 +58,6 @@ document.getElementById("btnJoin").onclick = async ()=>{
 
   userId = ref.id;
   localStorage.setItem("userId", userId);
-
   localStorage.setItem("eventId", currentState.eventId);
   savedEventId = currentState.eventId;
 
@@ -70,22 +69,18 @@ document.getElementById("btnJoin").onclick = async ()=>{
 ====================== */
 function render(q, showAnswer){
 
-  /* 問題文 */
   document.getElementById("q").innerText = q.text;
 
-  /* 画像（ある時だけ） */
   const img = document.getElementById("qImg");
   if(img){
     if(q.image){
       img.src = q.image;
       img.style.display = "block";
-      img.oncontextmenu = ()=>false; // 保存禁止
     }else{
       img.style.display = "none";
     }
   }
 
-  /* 選択肢 */
   const choicesEl = document.getElementById("choices");
   choicesEl.innerHTML = "";
 
@@ -93,38 +88,45 @@ function render(q, showAnswer){
 
   q.choices.forEach((c,i)=>{
     const div = document.createElement("div");
-
     let cls = "choice c" + i;
 
+    /* ===== 表示ロジック（最終・安定） ===== */
+
+    if(showAnswer === true){
+      // ① 解答表示
+      if(i === q.answer){
+        cls += " correct";     // 正解だけ鮮やか
+      }else if(i === myChoice){
+        cls += " selected";    // 選んだ不正解
+      }else{
+        cls += " dim";
+      }
+    }
+    else if(currentState.acceptingAnswers === false){
+      // ② 解答OFF
+      cls += " dim";           // 全体を薄く
+      if(i === myChoice){
+        cls += " selected";    // 選択は分かる
+      }
+    }
+    else{
+      // ③ 解答ON
+      if(i === myChoice){
+        cls += " selected";
+      }else if(myChoice !== null){
+        cls += " dim";
+      }
+    }
+
+    /* ===== 押せるかどうか ===== */
     const clickable =
-      currentState.acceptingAnswers &&
-      !showAnswer &&
+      currentState.mode === "question" &&
+      currentState.acceptingAnswers === true &&
       !hasAnswered;
 
-    /* ===== 表示ロジック ===== */
-    /* ===== 表示ロジック（最終版） ===== */
-
-    /* 解答表示 */
-    if (showAnswer) {
-      if (i === q.answer) {
-        cls += " correct";     // ✅ 正解は必ず鮮やか
-      } else if (i === myChoice) {
-        cls += " selected";    // 選んだ不正解（黒枠＋薄い）
-      } else {
-        cls += " dim";
-      }
+    if(!clickable){
+      cls += " disabled";
     }
-
-    /* 解答前 */
-    else {
-      if (i === myChoice) {
-        cls += " selected";    // 黒枠＋薄い
-      } else if (myChoice !== null) {
-        cls += " dim";
-      }
-    }
-
-    if(!clickable) cls += " disabled";
 
     div.className = cls;
     div.innerHTML = `${labels[i]}<br>${c}`;
@@ -136,7 +138,6 @@ function render(q, showAnswer){
     choicesEl.appendChild(div);
   });
 
-  /* 状態表示 */
   const status = document.getElementById("quizStatus");
   status.innerText = currentState.acceptingAnswers
     ? "回答受付中"
@@ -170,13 +171,11 @@ onSnapshot(doc(db,"game","state"), async snap=>{
 
   currentState = snap.data();
 
-  /* 未参加 */
   if(!userId){
     show(currentState.mode === "join" ? "join" : "blocked");
     return;
   }
 
-  /* イベント違い */
   if(savedEventId !== currentState.eventId){
     localStorage.clear();
     userId = null;
@@ -185,21 +184,22 @@ onSnapshot(doc(db,"game","state"), async snap=>{
     return;
   }
 
-  /* 待機 */
   if(currentState.mode === "waiting"){
     show("wait");
     return;
   }
 
-  /* 問題 */
   if(currentState.mode === "question"){
     show("quiz");
 
     const qSnap = await getDoc(doc(db,"questions","q"+currentState.questionId));
     if(!qSnap.exists()) return;
 
-    myChoice = null;
-    hasAnswered = false;
+    if(currentState.questionId !== lastQuestionId){
+      myChoice = null;
+      hasAnswered = false;
+      lastQuestionId = currentState.questionId;
+    }
 
     const resultBox = document.getElementById("answerResult");
     if(resultBox) resultBox.style.display = "none";
@@ -208,19 +208,36 @@ onSnapshot(doc(db,"game","state"), async snap=>{
     return;
   }
 
-  /* 解答表示 */
   if(currentState.mode === "answer"){
-    show("quiz");
 
-    const qSnap = await getDoc(doc(db,"questions","q"+currentState.questionId));
-    if(!qSnap.exists()) return;
+      show("quiz");
 
-    const q = qSnap.data();
-    render(q, true);
+      const qRef = doc(db,"questions","q"+currentState.questionId);
+      const aRef = doc(db,"answers","q"+currentState.questionId,"users",userId);
 
-    await addScore();
+      const [qSnap, aSnap] = await Promise.all([
+        getDoc(qRef),
+        getDoc(aRef)
+      ]);
 
-    /* 結果UI */
+      if(!qSnap.exists()) return;
+      const q = qSnap.data();
+
+      /* ✅ Firestore から“自分の回答”を復元 */
+      if(aSnap.exists()){
+        const a = aSnap.data();
+        myChoice = a.choice;
+        hasAnswered = true;
+      }else{
+        myChoice = null;
+        hasAnswered = false;
+  }
+
+  render(q, true);
+
+  await addScore();
+
+
     const resultBox = document.getElementById("answerResult");
     if(resultBox){
       resultBox.style.display = "block";
@@ -230,13 +247,10 @@ onSnapshot(doc(db,"game","state"), async snap=>{
       const correctAnswerEl = document.getElementById("correctAnswer");
       const scoreEl = document.getElementById("score");
 
-      if(myChoice === q.answer){
-        resultText.innerText = "正解！";
-        resultText.className = "result-text correct";
-      }else{
-        resultText.innerText = "不正解";
-        resultText.className = "result-text wrong";
-      }
+      resultText.innerText =
+        myChoice === q.answer ? "正解！" : "不正解";
+      resultText.className =
+        "result-text " + (myChoice === q.answer ? "correct" : "wrong");
 
       myAnswerEl.innerText = q.choices[myChoice] ?? "未回答";
       correctAnswerEl.innerText = q.choices[q.answer];
@@ -244,11 +258,9 @@ onSnapshot(doc(db,"game","state"), async snap=>{
       const pSnap = await getDoc(doc(db,"players",userId));
       scoreEl.innerText = pSnap.data()?.score || 0;
     }
-
     return;
   }
 
-  /* ランキング */
   if(currentState.mode === "ranking"){
     show("ranking");
 
