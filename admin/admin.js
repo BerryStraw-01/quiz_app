@@ -148,22 +148,22 @@ function showTab(t){
 /* =====================
    問題一覧
 ===================== */
+// 問題一覧生成部分のみ修正
 async function loadQuestions(){
   const snap = await getDocs(collection(db,"questions"));
   let html="";
   snap.forEach(docSnap=>{
     const d = docSnap.data();
-    const id = docSnap.id.replace("q","");
     html += `
-      <div class="q-card inactive" id="q${id}">
-        第${id}問：${d.text}
+      <div class="q-card inactive">
+        ${d.text}
       </div>`;
   });
   document.getElementById("questionList").innerHTML = html;
 
   snap.forEach(docSnap=>{
     const id = docSnap.id.replace("q","");
-    document.getElementById("q"+id).onclick = ()=>{
+    document.querySelectorAll(".q-card")[id-1].onclick = ()=>{
       setDoc(doc(db,"game","state"),{
         questionId: Number(id),
         mode: "question",
