@@ -14,11 +14,11 @@ const db = getFirestore(initializeApp({
 }));
 
 /* =====================
-   state（初期値）
+   state
 ===================== */
 let state = {
-  mode: "waiting",      // ← デフォルトは待機
-  questionId: null,     // ← 初期は未選択
+  mode: "waiting",
+  questionId: null,
   acceptingAnswers: false,
   eventId: null
 };
@@ -26,12 +26,39 @@ let state = {
 let currentTab = "q";
 
 /* =====================
+   ✅ タブ切替（← これが無かった）
+===================== */
+document.getElementById("tab-q").onclick = () => showTab("q");
+document.getElementById("tab-a").onclick = () => showTab("a");
+
+function showTab(tab){
+  currentTab = tab;
+
+  document.getElementById("tab-q-area").style.display =
+    tab === "q" ? "block" : "none";
+  document.getElementById("tab-a-area").style.display =
+    tab === "a" ? "block" : "none";
+
+  document.getElementById("tab-q").classList.toggle("active", tab === "q");
+  document.getElementById("tab-a").classList.toggle("active", tab === "a");
+
+  if(tab === "a"){
+    startAnswerListener();   // ← 回答状況を開いた瞬間に購読開始
+  }
+}
+
+/* =====================
    参加人数
 ===================== */
 let currentPlayerCount = 0;
 
 onSnapshot(collection(db,"players"), snap=>{
-  if(!state.eventId) return;
+  if(!state.eventId){
+    currentPlayerCount = 0;
+    document.getElementById("playerCount").innerText =
+      "参加人数：0人";
+    return;
+  }
 
   let count = 0;
   snap.forEach(d=>{
@@ -57,7 +84,10 @@ async function startAnswerListener(){
     unsubscribeAnswers = null;
   }
 
-  if(state.questionId === null) return;
+  if(!state.eventId || state.questionId === null){
+    document.getElementById("answerStatus").innerHTML = "";
+    return;
+  }
 
   const qSnap = await getDoc(
     doc(db,"questions","q"+state.questionId)
@@ -104,9 +134,9 @@ async function startAnswerListener(){
 
       html += `
         <div class="answer-row ${isCorrect ? "correct" : ""}">
-          <div class="col-number">${i+1}</div>
-          <div class="col-text">${text}</div>
-          <div class="col-count">${count[i]}人</div>
+          <div class="answer-no">${String(i+1).padStart(2,"0")}</div>
+          <div class="answer-text">${text}</div>
+          <div class="answer-count">👤 ${count[i]}人</div>
         </div>
       `;
     });
@@ -117,27 +147,7 @@ async function startAnswerListener(){
 }
 
 /* =====================
-   タブ
-===================== */
-document.getElementById("tab-q").onclick = ()=>showTab("q");
-document.getElementById("tab-a").onclick = ()=>showTab("a");
-
-function showTab(t){
-  currentTab = t;
-
-  document.getElementById("tab-q-area").style.display =
-    t==="q" ? "block" : "none";
-  document.getElementById("tab-a-area").style.display =
-    t==="a" ? "block" : "none";
-
-  document.getElementById("tab-q").classList.toggle("active", t==="q");
-  document.getElementById("tab-a").classList.toggle("active", t==="a");
-
-  if(t==="a") startAnswerListener();
-}
-
-/* =====================
-   問題選択（下が唯一の操作点）
+   問題選択
 ===================== */
 async function loadQuestions(){
   const snap = await getDocs(collection(db,"questions"));
@@ -170,31 +180,37 @@ async function loadQuestions(){
 }
 
 /* =====================
-   UI更新（最重要）
+   UI更新
 ===================== */
 function updateUI(s){
 
-  // 進行ボタン
   setMode("btnJoin",     s.mode==="join");
   setMode("btnWait",     s.mode==="waiting");
   setMode("btnRanking",  s.mode==="ranking");
   setMode("btnAnswer",   s.mode==="answer");
 
-  // 「問題」ボタンは「選択されているときのみON」
   setMode("btnQuestion", s.mode==="question" && s.questionId !== null);
   document.getElementById("btnQuestion").disabled = true;
 
-  // トグル＋テキスト
   const toggle = document.getElementById("btnToggle");
-  toggle.classList.toggle("on", s.acceptingAnswers);
+  const check  = document.querySelector(".toggle-check");
+  const title  = document.querySelector(".toggle-title");
+  const sub    = document.querySelector(".toggle-sub");
 
-  const toggleText = document.querySelector(".toggle-sub");
-  toggleText.innerText =
-    s.acceptingAnswers
-      ? "回答を受け付けています"
-      : "回答を受け付けていません";
+  if(s.acceptingAnswers){
+    toggle.classList.add("on");
+    check.textContent = "✓";
+    check.className = "toggle-check on";
+    title.textContent = "回答：ON";
+    sub.textContent   = "回答を受け付けています";
+  }else{
+    toggle.classList.remove("on");
+    check.textContent = "✕";
+    check.className = "toggle-check off";
+    title.textContent = "回答：OFF";
+    sub.textContent   = "回答を受け付けていません";
+  }
 
-  // 問題一覧の選択状態
   document.querySelectorAll(".q-card").forEach(card=>{
     card.classList.toggle(
       "active",
@@ -213,7 +229,7 @@ function setMode(id, active){
 function clearQuestionAndSetMode(newMode){
   setDoc(doc(db,"game","state"),{
     mode: newMode,
-    questionId: null,           // ← 重要：必ずクリア
+    questionId: null,
     acceptingAnswers: false
   },{ merge:true });
 }
@@ -227,8 +243,13 @@ document.getElementById("btnWait").onclick =
 document.getElementById("btnRanking").onclick =
   ()=>clearQuestionAndSetMode("ranking");
 
+/* 解答ボタン */
 document.getElementById("btnAnswer").onclick =
-  ()=>clearQuestionAndSetMode("answer");
+  ()=>setDoc(doc(db,"game","state"),{
+    mode:"answer",
+    questionId: state.questionId,
+    acceptingAnswers:true
+  },{ merge:true });
 
 document.getElementById("btnToggle").onclick =
   ()=>setDoc(doc(db,"game","state"),
@@ -263,3 +284,4 @@ onSnapshot(doc(db,"game","state"), snap=>{
    初期処理
 ===================== */
 loadQuestions();
+showTab("q");   // ← 初期表示

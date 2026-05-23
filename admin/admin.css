@@ -11,6 +11,7 @@ body{
 .phone{
   width:375px;
   padding:20px 0;
+  overflow: visible; /* hidden になっていたらNG */
 }
 
 .title{
@@ -284,4 +285,136 @@ body{
 /* active時はアイコン白 */
 .mode-btn.active svg{
   stroke:white !important;
+}
+
+/* 回答状況（Kahoot風） */
+.answer-table{
+  background:#f7f9ff;
+  border-radius:14px;
+  padding:10px;
+}
+
+.answer-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:8px;
+}
+
+.answer-row:last-child{
+  margin-bottom:0;
+}
+
+.answer-no{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  background:#5c6cff;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+}
+
+.answer-text{
+  flex:1;
+  font-size:14px;
+}
+
+.answer-count{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  color:#5c6cff;
+  font-size:13px;
+}
+
+.answer-row.correct{
+  background:#eaf2ff;
+}
+
+.answer-table{
+  background:#f7f9ff;
+  border-radius:14px;
+  padding:10px;
+}
+
+.answer-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:8px;
+}
+
+.answer-row:last-child{
+  margin-bottom:0;
+}
+
+.answer-no{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  background:#5c6cff;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+}
+
+.answer-text{
+  flex:1;
+  font-size:14px;
+}
+
+.answer-count{
+  font-size:13px;
+  color:#5c6cff;
+}
+
+.answer-row.correct{
+  background:#eaf2ff;
+}
+
+/* 回答ON/OFF アイコン */
+.toggle-check{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  color:white;
+}
+
+.toggle-check.on{
+  background:#44b38b;   /* 緑 */
+}
+
+.toggle-check.off{
+  background:#e25555;   /* 赤 */
+}
+
+/* ===== タブを必ずクリック可能にする ===== */
+.tab-bar{
+  position: relative;
+  z-index: 10;
+}
+
+.tab{
+  pointer-events: auto;
+}
+
+/* 画像問題用 */
+.q-image{
+  width:100%;
+  margin-top:8px;
+  border-radius:10px;
+  object-fit:contain;
 }
