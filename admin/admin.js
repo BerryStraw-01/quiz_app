@@ -33,6 +33,9 @@ let state = {
 let currentTab = "q";
 let unsubscribeAnswers = null;
 
+/* ✅ 参加人数（数値で保持） */
+let playerCount = 0;
+
 /* =====================================================
    タブ切替
 ===================================================== */
@@ -56,41 +59,50 @@ function showTab(tab){
 }
 
 /* =====================================================
-   参加人数（players 基準）
+   ✅ 参加人数（リアルタイム監視）
 ===================================================== */
 onSnapshot(collection(db,"players"), snap=>{
+
+  // eventId 未設定時
   if(!state.eventId){
-    document.getElementById("playerCount").innerText="参加人数：0人";
+    playerCount = 0;
+    document.getElementById("playerCount").innerText = "参加人数：0人";
     return;
   }
 
   let count = 0;
+
   snap.forEach(d=>{
     if(d.data().eventId === state.eventId){
       count++;
     }
   });
 
+  playerCount = count; // ✅ 数値で保存
+
   document.getElementById("playerCount").innerText =
     `参加人数：${count}人`;
 });
 
 /* =====================================================
-   回答状況（問題別）
+   ✅ 回答状況（問題別）
 ===================================================== */
 async function startAnswerListener(){
 
+  // 既存リスナー解除
   if(unsubscribeAnswers){
     unsubscribeAnswers();
     unsubscribeAnswers = null;
   }
 
+  // 問題未選択
   if(state.questionId === null){
     document.getElementById("answerStatus").innerHTML =
       "<div class='answer-info'>問題が選択されていません</div>";
     return;
   }
 
+  // 問題取得
   const qSnap = await getDoc(doc(db,"questions","q"+state.questionId));
   if(!qSnap.exists()) return;
   const q = qSnap.data();
@@ -102,29 +114,43 @@ async function startAnswerListener(){
     const count = Array(q.choices.length).fill(0);
     let answered = 0;
 
+    /* ✅ 回答集計 */
     snap.forEach(d=>{
       const a = d.data();
+
       if(a.eventId === state.eventId && typeof a.choice === "number"){
         answered++;
         count[a.choice]++;
       }
     });
 
+    /* ✅ UI作成 */
     let html = `
       <div class="answer-info">
         <div class="answer-title">
           ${state.acceptingAnswers ? "回答受付中" : "回答結果"}
         </div>
         <div class="answer-sub">
-          ${answered}人が回答済み
+          ${answered}人回答済み / 参加者${playerCount}人
         </div>
       </div>
+
       <div class="answer-table">
     `;
 
+    /* ✅ 選択肢描画 */
     q.choices.forEach((t,i)=>{
+
+      // ✅ 正解は「受付終了後のみ」表示
+      const isCorrect =
+        (i === q.answer) && !state.acceptingAnswers;
+
+      const cls = isCorrect
+        ? "answer-row correct"
+        : "answer-row";
+
       html += `
-        <div class="answer-row">
+        <div class="${cls}">
           <div class="answer-no">${i+1}</div>
           <div class="answer-text">${t}</div>
           <div class="answer-count">${count[i]}人</div>
@@ -133,57 +159,30 @@ async function startAnswerListener(){
     });
 
     html += "</div>";
+
     document.getElementById("answerStatus").innerHTML = html;
   });
 }
 
 /* =====================================================
-   ✅ ランキング生成（scored === true を集計）
+   ✅ ランキング生成（playersベース）
 ===================================================== */
 async function buildAndSaveRanking(){
 
-  if(!state.eventId) return;
-
-  const scoreMap = new Map();
-
-  // ✅ answers を直接走査せず、questions を基準にする
-  const questionSnap = await getDocs(collection(db,"questions"));
-
-  for(const qDoc of questionSnap.docs){
-
-    const qId = qDoc.id; // 例: "q1"
-    const usersSnap = await getDocs(
-      collection(db,"answers", qId, "users")
-    );
-
-    usersSnap.forEach(u=>{
-      const a = u.data();
-
-      if(a.eventId !== state.eventId) return;
-      if(a.scored !== true) return;   // ✅ index 側が書いた scored を信頼
-
-      const cur = scoreMap.get(u.id) || {
-        userId: u.id,
-        score: 0
-      };
-
-      cur.score++;
-      scoreMap.set(u.id, cur);
-    });
-  }
-
-  // ✅ players から名前を補完
+  const snap = await getDocs(collection(db,"players"));
   const result = [];
-  for(const [userId, r] of scoreMap.entries()){
-    const pSnap = await getDoc(doc(db,"players", userId));
-    if(!pSnap.exists()) continue;
+
+  snap.forEach(docSnap => {
+    const d = docSnap.data();
+
+    if(d.eventId !== state.eventId) return;
 
     result.push({
-      userId,
-      name: pSnap.data().name,
-      score: r.score
+      userId: docSnap.id,
+      name: d.name,
+      score: d.score || 0
     });
-  }
+  });
 
   result.sort((a,b)=>b.score - a.score);
 
@@ -198,6 +197,7 @@ async function buildAndSaveRanking(){
    ランキング表示
 ===================================================== */
 async function showRanking(){
+
   const snap = await getDoc(doc(db,"ranking","current"));
   if(!snap.exists()) return;
 
@@ -205,6 +205,7 @@ async function showRanking(){
   if(r.eventId !== state.eventId) return;
 
   let html = `<div class="ranking-list">`;
+
   r.top10.forEach((p,i)=>{
     html += `
       <div class="ranking-row">
@@ -214,6 +215,7 @@ async function showRanking(){
       </div>
     `;
   });
+
   html += `</div>`;
 
   document.getElementById("answerStatus").innerHTML = html;
@@ -223,7 +225,9 @@ async function showRanking(){
    問題一覧
 ===================================================== */
 async function loadQuestions(){
+
   const snap = await getDocs(collection(db,"questions"));
+
   let html = "";
   let i = 1;
 
@@ -249,6 +253,11 @@ async function loadQuestions(){
         acceptingAnswers:false,
         eventId:eid
       },{ merge:true });
+
+      document.querySelectorAll(".q-card")
+        .forEach(c=>c.classList.remove("active"));
+
+      card.classList.add("active");
     };
   });
 }
@@ -257,27 +266,28 @@ async function loadQuestions(){
    UI更新
 ===================================================== */
 function updateUI(s){
+
   state = s;
 
-  setActive("btnJoin",     s.mode==="join");
-  setActive("btnWait",     s.mode==="waiting");
-  setActive("btnAnswer",   s.mode==="answer");
-  setActive("btnRanking",  s.mode==="ranking");
-
+  setActive("btnJoin",    s.mode==="join");
+  setActive("btnWait",    s.mode==="waiting");
+  setActive("btnRanking", s.mode==="ranking");
   setActive("btnQuestion", s.questionId !== null);
+  setActive("btnAnswer",   s.mode === "answer");
 
-  const chk   = document.querySelector(".toggle-check");
-  const title = document.querySelector(".toggle-title");
-  const sub   = document.querySelector(".toggle-sub");
+  const toggle = document.getElementById("btnToggle");
+  const check  = document.querySelector(".toggle-check");
+  const title  = document.querySelector(".toggle-title");
+  const sub    = document.querySelector(".toggle-sub");
 
   if(s.acceptingAnswers){
-    chk.className = "toggle-check on";
-    chk.textContent = "✓";
+    toggle.classList.add("on");
+    check.className = "toggle-check on";
     title.textContent = "回答：ON";
     sub.textContent   = "回答を受け付けています";
   }else{
-    chk.className = "toggle-check off";
-    chk.textContent = "✕";
+    toggle.classList.remove("on");
+    check.className = "toggle-check off";
     title.textContent = "回答：OFF";
     sub.textContent   = "回答を受け付けていません";
   }
@@ -288,7 +298,7 @@ function setActive(id,on){
 }
 
 /* =====================================================
-   進行ボタン操作
+   進行ボタン
 ===================================================== */
 function clearAndSet(mode){
   setDoc(doc(db,"game","state"),{
@@ -298,13 +308,13 @@ function clearAndSet(mode){
   },{ merge:true });
 }
 
-document.getElementById("btnJoin").onclick = ()=>clearAndSet("join");
-document.getElementById("btnWait").onclick = ()=>clearAndSet("waiting");
+document.getElementById("btnJoin").onclick = () => clearAndSet("join");
+document.getElementById("btnWait").onclick = () => clearAndSet("waiting");
 
 document.getElementById("btnAnswer").onclick =
-  ()=>setDoc(doc(db,"game","state"),{
+  () => setDoc(doc(db,"game","state"),{
     mode:"answer",
-    acceptingAnswers:true
+    acceptingAnswers:false
   },{ merge:true });
 
 document.getElementById("btnRanking").onclick = async ()=>{
@@ -313,9 +323,6 @@ document.getElementById("btnRanking").onclick = async ()=>{
   await showRanking();
 };
 
-/* =====================================================
-   トグル（Firestore値のみ反転）
-===================================================== */
 document.getElementById("btnToggle").onclick = async ()=>{
   const snap = await getDoc(doc(db,"game","state"));
   const cur = snap.data().acceptingAnswers;
@@ -335,6 +342,7 @@ document.querySelector(".reset").onclick = ()=>{
     acceptingAnswers:false,
     eventId:Date.now().toString()
   });
+
   currentTab="q";
   showTab("q");
 };
@@ -343,6 +351,7 @@ document.querySelector(".reset").onclick = ()=>{
    Firestore state 監視
 ===================================================== */
 onSnapshot(doc(db,"game","state"), snap=>{
+
   if(!snap.exists()) return;
 
   updateUI(snap.data());

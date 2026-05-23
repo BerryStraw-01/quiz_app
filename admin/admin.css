@@ -1,3 +1,6 @@
+/* ======================
+   共通
+====================== */
 *{ box-sizing:border-box; }
 
 body{
@@ -11,7 +14,7 @@ body{
 .phone{
   width:375px;
   padding:20px 0;
-  overflow: visible; /* hidden になっていたらNG */
+  overflow:visible;
 }
 
 .title{
@@ -20,7 +23,9 @@ body{
   margin-bottom:16px;
 }
 
-/* 参加人数 */
+/* ======================
+   参加人数
+====================== */
 .pill-center{
   display:flex;
   justify-content:center;
@@ -39,12 +44,14 @@ body{
 .pill-icon svg{
   width:22px;
   height:22px;
-  stroke:#5c6cff;
+  stroke:#5c6cff;     /* ✅ 背景と被らない青 */
   fill:none;
-  stroke-width:1.4;
+  stroke-width:1.6;
 }
 
-/* カード */
+/* ======================
+   カード
+====================== */
 .card{
   background:white;
   border-radius:22px;
@@ -53,12 +60,15 @@ body{
   box-shadow:0 10px 24px rgba(0,0,0,.08);
 }
 
-/* 進行ボタン */
+/* ======================
+   進行ボタン
+====================== */
 .mode-row{
   display:grid;
   grid-template-columns:repeat(5,1fr);
   gap:10px;
 }
+
 .mode-btn{
   height:110px;
   border:none;
@@ -72,56 +82,68 @@ body{
   font-size:12px;
   color:#5c6cff;
 }
+
 .mode-btn svg{
   width:42px;
   height:42px;
-  stroke-width:1.4;
   stroke:#5c6cff;
   fill:none;
+  stroke-width:1.6;
 }
+
+/* 共通 active */
 .mode-btn.active{
-  background:#5c6cff;
   color:white;
 }
-.mode-btn.active svg{ stroke:white; }
+.mode-btn.active svg{
+  stroke:white;
+}
 
-.mode-btn.green{ background:#eaf6ee; color:#44b38b; }
-.mode-btn.green svg{ stroke:#44b38b; }
-.mode-btn.green.active{ background:#44b38b; color:white; }
+/* ✅ 問題（黄色テーマ） */
+#btnQuestion.active{
+  background:#f2b84b;
+}
+#btnQuestion:not(.active){
+  opacity:0.5;
+}
 
-.mode-btn.yellow{ background:#fbf3e4; color:#f2b84b; }
-.mode-btn.yellow svg{ stroke:#f2b84b; }
-.mode-btn.yellow.active{ background:#f2b84b; color:white; }
+/* ✅ 解答（緑テーマ） */
+#btnAnswer.active{
+  background:#44b38b;
+}
 
-/* トグル */
+/* ✅ その他（青テーマ） */
+.mode-btn.active:not(#btnQuestion):not(#btnAnswer){
+  background:#5c6cff;
+}
+
+/* ======================
+   トグル
+====================== */
 .toggle-card{
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
+
 .toggle-left{
   display:flex;
   gap:12px;
   align-items:center;
 }
+
 .toggle-check{
   width:32px;
   height:32px;
   border-radius:50%;
-  background:#44b38b;
-  color:white;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:14px;
+  font-size:16px;
+  color:white;
 }
-.toggle-text{
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-}
-.toggle-title{ font-size:15px; }
-.toggle-sub{ font-size:12px; color:#666; }
+.toggle-check.on{ background:#44b38b; }
+.toggle-check.off{ background:#e25555; }
 
 .ios-toggle{
   width:48px;
@@ -129,6 +151,7 @@ body{
   border-radius:13px;
   background:#ccd2dd;
   position:relative;
+  transition:.2s;
 }
 .ios-toggle::after{
   content:"";
@@ -141,14 +164,22 @@ body{
   left:3px;
   transition:.2s;
 }
-.ios-toggle.on{ background:#44b38b; }
-.ios-toggle.on::after{ left:25px; }
+.ios-toggle.on{
+  background:#44b38b;
+}
+.ios-toggle.on::after{
+  left:25px;
+}
 
-/* タブ */
+/* ======================
+   タブ
+====================== */
 .tab-bar{
   display:flex;
   gap:8px;
   margin-bottom:10px;
+  position:relative;
+  z-index:10;
 }
 .tab{
   flex:1;
@@ -158,26 +189,35 @@ body{
   background:#e8efff;
   font-size:13px;
 }
-.tab.active{ background:#5c6cff; color:white; }
+.tab.active{
+  background:#5c6cff;
+  color:white;
+}
 
-/* 問題一覧 */
+/* ======================
+   問題一覧（番号は常に濃い青）
+====================== */
 .q-card{
+  position:relative;
   display:flex;
   align-items:center;
-  gap:10px;
-  padding:12px;
+  padding:12px 12px 12px 56px;
   border-radius:14px;
   background:white;
   margin-bottom:10px;
   box-shadow:0 4px 12px rgba(0,0,0,.06);
-  font-size:14px;
 }
+
 .q-card::before{
-  content: attr(data-no);
+  content:attr(data-id);
+  position:absolute;
+  left:12px;
+  top:50%;
+  transform:translateY(-50%);
   width:32px;
   height:32px;
   border-radius:8px;
-  background:#5c6cff;
+  background:#5c6cff;  /* ✅ 常に青 */
   color:white;
   display:flex;
   align-items:center;
@@ -185,10 +225,13 @@ body{
   font-weight:600;
 }
 
-/* 回答状況 */
-.answer-panel{
-  padding:10px;
+.q-card.active{
+  background:#fff6df;   /* ✅ 問題テーマ：黄色寄り */
 }
+
+/* ======================
+   回答状況（正解を緑で強調）
+====================== */
 .answer-info{
   text-align:center;
   margin-bottom:14px;
@@ -201,31 +244,57 @@ body{
   font-size:13px;
   color:#666;
 }
+
 .answer-table{
   background:#f7f9ff;
   border-radius:14px;
   padding:10px;
 }
+
 .answer-row{
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  gap:12px;
   padding:10px;
-  border-bottom:1px solid #e0e6ff;
-}
-.answer-row:last-child{ border-bottom:none; }
-.answer-row.correct{
-  background:#eaf2ff;
-}
-.col-number{ width:32px; }
-.col-text{ flex:1; }
-.col-count{
-  display:flex;
-  align-items:center;
-  gap:6px;
+  border-radius:10px;
+  margin-bottom:8px;
 }
 
-/* 初期化 */
+.answer-row.correct{
+  background:#dce6ff;              /* 少し濃い青 */
+  border:3px solid #5c6cff;
+  box-shadow:0 0 0 2px rgba(92,108,255,0.15);
+}
+
+.answer-no{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  background:#5c6cff;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+}
+
+
+.answer-row.correct .answer-no{
+  background:#5c6cff;
+  transform:scale(1.05);
+}
+
+
+.answer-text{ flex:1; }
+
+.answer-count{
+  font-size:13px;
+  color:#5c6cff;
+}
+
+/* ======================
+   リセット（アイコン付き）
+====================== */
 .reset{
   width:100%;
   height:46px;
@@ -239,182 +308,54 @@ body{
   justify-content:center;
   gap:8px;
 }
-.reset-icon svg{
+
+.reset svg{
   width:18px;
   height:18px;
   stroke:white;
   fill:none;
-  stroke-width:1.4;
+  stroke-width:1.6;
 }
 
-/* active時：アイコンは必ず白 */
-.mode-btn.active svg{
-  stroke:white !important;
+/* ✅ 解答（緑テーマ） */
+#btnAnswer{
+  background:#e3f6ee;
+  color:#44b38b;
 }
 
-/* 解答（緑） */
-.mode-btn.green.active{
+#btnAnswer svg{
+  stroke:#44b38b;
+}
+
+#btnAnswer.active{
   background:#44b38b;
   color:white;
 }
 
-/* 問題（黄） */
-.mode-btn.yellow.active{
+#btnAnswer.active svg{
+  stroke:white;
+}
+
+/* ✅ 問題（黄色テーマ） */
+#btnQuestion{
+  background:#fff4df;
+  color:#f2b84b;
+}
+
+#btnQuestion svg{
+  stroke:#f2b84b;
+}
+
+/* アクティブ時（反転） */
+#btnQuestion.active{
   background:#f2b84b;
   color:white;
 }
 
-/* 問題未選択時：問題ボタンはOFF表示 */
-#btnQuestion:not(.active){
-  opacity:0.6;
+#btnQuestion.active svg{
+  stroke:white;
 }
 
-/* 問題選択UI */
 .q-card.active{
-  background:#eef3ff;
-}
-.q-card.active::before{
-  background:#5c6cff;
-}
-
-/* 問題未選択時は問題ボタンを薄く（OFF表示） */
-#btnQuestion:not(.active){
-  opacity:0.5;
-}
-
-/* active時はアイコン白 */
-.mode-btn.active svg{
-  stroke:white !important;
-}
-
-/* 回答状況（Kahoot風） */
-.answer-table{
-  background:#f7f9ff;
-  border-radius:14px;
-  padding:10px;
-}
-
-.answer-row{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:8px;
-}
-
-.answer-row:last-child{
-  margin-bottom:0;
-}
-
-.answer-no{
-  width:36px;
-  height:36px;
-  border-radius:10px;
-  background:#5c6cff;
-  color:white;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:600;
-}
-
-.answer-text{
-  flex:1;
-  font-size:14px;
-}
-
-.answer-count{
-  display:flex;
-  align-items:center;
-  gap:4px;
-  color:#5c6cff;
-  font-size:13px;
-}
-
-.answer-row.correct{
-  background:#eaf2ff;
-}
-
-.answer-table{
-  background:#f7f9ff;
-  border-radius:14px;
-  padding:10px;
-}
-
-.answer-row{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:8px;
-}
-
-.answer-row:last-child{
-  margin-bottom:0;
-}
-
-.answer-no{
-  width:36px;
-  height:36px;
-  border-radius:10px;
-  background:#5c6cff;
-  color:white;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:600;
-}
-
-.answer-text{
-  flex:1;
-  font-size:14px;
-}
-
-.answer-count{
-  font-size:13px;
-  color:#5c6cff;
-}
-
-.answer-row.correct{
-  background:#eaf2ff;
-}
-
-/* 回答ON/OFF アイコン */
-.toggle-check{
-  width:32px;
-  height:32px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:16px;
-  color:white;
-}
-
-.toggle-check.on{
-  background:#44b38b;   /* 緑 */
-}
-
-.toggle-check.off{
-  background:#e25555;   /* 赤 */
-}
-
-/* ===== タブを必ずクリック可能にする ===== */
-.tab-bar{
-  position: relative;
-  z-index: 10;
-}
-
-.tab{
-  pointer-events: auto;
-}
-
-/* 画像問題用 */
-.q-image{
-  width:100%;
-  margin-top:8px;
-  border-radius:10px;
-  object-fit:contain;
+  background:#e8efff;   /* ✅ 青系に変更 */
 }
