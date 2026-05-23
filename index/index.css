@@ -40,11 +40,7 @@ html, body{
 .phone{
   width:100%;
   min-height:100vh;
-  padding:40px 16px;
-
-  display:flex;
-  flex-direction:column;
-  align-items:center;
+  padding:40px 0;   /* 横paddingは使わない */
 }
 
 /* ======================
@@ -74,6 +70,20 @@ html, body{
 /* ======================
    タイトル周りキラキラ（統一）
 ====================== */
+/* ======================
+   キラキラ固定レイヤー
+====================== */
+.sparkle-layer{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100vw;
+  height:120px;     /* タイトル付近だけ */
+  pointer-events:none;
+  z-index:2;
+}
+
+/* キラキラ共通 */
 .sparkle{
   position:absolute;
   width:10px;
@@ -87,31 +97,11 @@ html, body{
   );
 }
 
-/* 左側 */
-.title-s1{
-  top:-18px;
-  left:50%;
-  transform:translateX(-140px);
-}
-
-.title-s2{
-  top:22px;
-  left:50%;
-  transform:translateX(-90px);
-}
-
-/* 右側 */
-.title-s3{
-  top:-12px;
-  left:50%;
-  transform:translateX(100px);
-}
-
-.title-s4{
-  top:26px;
-  left:50%;
-  transform:translateX(150px);
-}
+/* ✅ 画面基準（px固定） */
+.title-s1{ top:20px;  left:calc(50% - 140px); }
+.title-s2{ top:55px;  left:calc(50% - 90px); }
+.title-s3{ top:18px;  left:calc(50% + 100px); }
+.title-s4{ top:58px;  left:calc(50% + 150px); }
 
 /* タイトル周り */
 .title-wrap{
@@ -122,12 +112,11 @@ html, body{
 }
 
 /* ======================
-   カード（共通）
+   カード
 ====================== */
 .card{
-  width:100%;
-  max-width:calc(100vw - 32px); /* ✅ iPhone幅より一回り小さく */
-  margin:20px auto;             /* ✅ 中央寄せ */
+  width:calc(100vw - 32px); /* ✅ 常に同じ横幅 */
+  margin:20px auto;
 
   padding:20px;
   border-radius:22px;
