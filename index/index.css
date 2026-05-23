@@ -190,8 +190,11 @@ body{
   min-height:56px;
   padding:14px;
   border-radius:14px;
-  font-size:15px;
-  line-height:1.4;
+
+  font-size:20px;      /* ← 15px → 20px */
+  line-height:1.6;     /* 読みやすく */
+  font-weight:600;     /* 視認性アップ */
+
   color:white;
   cursor:pointer;
   user-select:none;
@@ -377,3 +380,169 @@ body{
     white 40%
   );
 }
+
+/* ======================
+   クイズ下部の文字を全体的に大きく
+====================== */
+
+/* 回答受付中 / 回答受付終了 */
+.quiz-status{
+  font-size:16px;        /* 13px → 16px */
+  color:#555;
+}
+
+/* 正解！ / 不正解 */
+.result-text{
+  font-size:26px;        /* 22px → 26px */
+  font-weight:700;
+}
+
+/* あなたの解答 / 正解 */
+.answer-detail{
+  font-size:18px;        /* 14px → 18px */
+  margin-bottom:10px;
+}
+
+/* スコア */
+.score-text{
+  font-size:18px;        /* 14px → 18px */
+  font-weight:600;
+}
+
+/* ======================
+   ランキング文字を大きく
+====================== */
+
+/* 順位（1位, 2位…） */
+.rank{
+  font-size:18px;      /* ← 大きく */
+}
+
+/* 名前 */
+.rank-name{
+  font-size:20px;      /* ← メインなので一番大きく */
+  font-weight:600;
+}
+
+/* スコア */
+.rank-score{
+  font-size:18px;
+}
+
+/* ======================
+   背景アクセント（薄い青の縁）
+====================== */
+
+/* 背景用の装飾レイヤー */
+.bg::before,
+.bg::after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+}
+
+/* 左上の青い縁 */
+.bg::before{
+  width:420px;
+  height:420px;
+  top:-140px;
+  left:-160px;
+
+  background:
+    radial-gradient(
+      circle,
+      transparent 60%,
+      rgba(92,108,255,0.18) 62%,
+      rgba(92,108,255,0.12) 66%,
+      transparent 68%
+    );
+}
+
+/* 右下の青い縁 */
+.bg::after{
+  width:360px;
+  height:360px;
+  bottom:-120px;
+  right:-140px;
+
+  background:
+    radial-gradient(
+      circle,
+      transparent 58%,
+      rgba(92,108,255,0.16) 60%,
+      rgba(92,108,255,0.1) 64%,
+      transparent 66%
+    );
+}
+
+/* ======================
+   背景アクセント（塗りつぶし円）
+====================== */
+
+/* 共通設定 */
+.bg::before,
+.bg::after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+}
+
+/* 左上の大きな円 */
+.bg::before{
+  width:420px;
+  height:420px;
+  top:-160px;
+  left:-180px;
+
+  background:rgba(92,108,255,0.12); /* 薄い青 */
+}
+
+/* 右下の円 */
+.bg::after{
+  width:320px;
+  height:320px;
+  bottom:-140px;
+  right:-160px;
+
+  background:rgba(92,108,255,0.10);
+}
+
+/* ======================
+   キラキラ アニメーション
+====================== */
+
+/* 共通：アニメーション付与 */
+.sparkle{
+  animation: sparkle-fade 3.5s ease-in-out infinite;
+  opacity:0.4;
+  transform:scale(0.8);
+}
+
+/* 個体ごとに少しずつズラす */
+.title-s1{ animation-delay:0s; }
+.title-s2{ animation-delay:1.2s; }
+.title-s3{ animation-delay:2.1s; }
+.title-s4{ animation-delay:0.6s; }
+
+/* アニメーション定義 */
+@keyframes sparkle-fade{
+  0%{
+    opacity:0.2;
+    transform:scale(0.7) rotate(0deg);
+  }
+  40%{
+    opacity:0.9;
+    transform:scale(1.05) rotate(6deg);
+  }
+  60%{
+    opacity:0.9;
+    transform:scale(1.05) rotate(-6deg);
+  }
+  100%{
+    opacity:0.2;
+    transform:scale(0.7) rotate(0deg);
+  }
+}
+``
