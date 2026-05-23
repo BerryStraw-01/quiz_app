@@ -154,14 +154,32 @@
          ランキング
     ====================== -->
     <div id="ranking" style="display:none;">
+
         <div class="header">
             <h1 class="title">ランキング</h1>
             <div class="title-bar"></div>
         </div>
 
         <div class="card">
-            <div id="rankList"></div>
+
+            <!-- ✅ JSがここにランキング行を差し込む -->
+            <div id="rankList" class="ranking-list">
+                <!--
+                  JS側で生成される想定：
+
+                  <div class="rank-row rank1">
+                    <div class="rank">1</div>
+                    <div class="rank-name">Alice</div>
+                    <div class="rank-score">5点</div>
+                  </div>
+
+                  <div class="rank-row rank2">...</div>
+                  <div class="rank-row rank3">...</div>
+                -->
+            </div>
+
         </div>
+
     </div>
 
 </div>

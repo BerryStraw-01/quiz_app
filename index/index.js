@@ -90,27 +90,23 @@ function render(q, showAnswer){
     const div = document.createElement("div");
     let cls = "choice c" + i;
 
-    /* ===== 表示ロジック（最終・安定） ===== */
-
-    if(showAnswer === true){
-      // ① 解答表示
+    /* ===== 表示ロジック（確定） ===== */
+    if(showAnswer){
       if(i === q.answer){
-        cls += " correct";     // 正解だけ鮮やか
+        cls += " correct";
       }else if(i === myChoice){
-        cls += " selected";    // 選んだ不正解
+        cls += " selected";
       }else{
         cls += " dim";
       }
     }
     else if(currentState.acceptingAnswers === false){
-      // ② 解答OFF
-      cls += " dim";           // 全体を薄く
+      cls += " dim";
       if(i === myChoice){
-        cls += " selected";    // 選択は分かる
+        cls += " selected";
       }
     }
     else{
-      // ③ 解答ON
       if(i === myChoice){
         cls += " selected";
       }else if(myChoice !== null){
@@ -118,7 +114,7 @@ function render(q, showAnswer){
       }
     }
 
-    /* ===== 押せるかどうか ===== */
+    /* ===== 押せるか ===== */
     const clickable =
       currentState.mode === "question" &&
       currentState.acceptingAnswers === true &&
@@ -209,34 +205,30 @@ onSnapshot(doc(db,"game","state"), async snap=>{
   }
 
   if(currentState.mode === "answer"){
+    show("quiz");
 
-      show("quiz");
+    const qRef = doc(db,"questions","q"+currentState.questionId);
+    const aRef = doc(db,"answers","q"+currentState.questionId,"users",userId);
 
-      const qRef = doc(db,"questions","q"+currentState.questionId);
-      const aRef = doc(db,"answers","q"+currentState.questionId,"users",userId);
+    const [qSnap, aSnap] = await Promise.all([
+      getDoc(qRef),
+      getDoc(aRef)
+    ]);
 
-      const [qSnap, aSnap] = await Promise.all([
-        getDoc(qRef),
-        getDoc(aRef)
-      ]);
+    if(!qSnap.exists()) return;
+    const q = qSnap.data();
 
-      if(!qSnap.exists()) return;
-      const q = qSnap.data();
+    if(aSnap.exists()){
+      const a = aSnap.data();
+      myChoice = a.choice;
+      hasAnswered = true;
+    }
 
-      /* ✅ Firestore から“自分の回答”を復元 */
-      if(aSnap.exists()){
-        const a = aSnap.data();
-        myChoice = a.choice;
-        hasAnswered = true;
-      }else{
-        myChoice = null;
-        hasAnswered = false;
-  }
+    /* ✅ ここが超重要 */
+    lastQuestionId = currentState.questionId;
 
-  render(q, true);
-
-  await addScore();
-
+    render(q, true);
+    await addScore();
 
     const resultBox = document.getElementById("answerResult");
     if(resultBox){
@@ -268,10 +260,16 @@ onSnapshot(doc(db,"game","state"), async snap=>{
     if(!snapRank.exists()) return;
 
     let html = "";
-    snapRank.data().top10.forEach((p,i)=>{
+
+    snapRank.data().top10.forEach((p, i) => {
+      const rankClass =
+        i === 0 ? "rank1" :
+        i === 1 ? "rank2" :
+        i === 2 ? "rank3" : "";
+
       html += `
-        <div class="rank-row">
-          <div class="rank-num">${i+1}位</div>
+        <div class="rank-row ${rankClass}">
+          <div class="rank-num">${i + 1}位</div>
           <div class="rank-name">${p.name}</div>
           <div class="rank-score">${p.score}点</div>
         </div>
