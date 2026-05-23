@@ -1,24 +1,24 @@
 /* ======================
-   初期化
+   リセット
 ====================== */
 *{
   box-sizing:border-box;
 }
 
 /* ======================
-   画面
+   ベース
 ====================== */
 html, body{
   margin:0;
   padding:0;
   width:100vw;
-  height:100vh;
-  overflow-x:hidden;
+  min-height:100vh;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 }
 
 body{
-  position: relative;
+  position:relative;
+  overflow-x:hidden;
 }
 
 /* ======================
@@ -26,12 +26,8 @@ body{
 ====================== */
 .bg{
   position:fixed;
-  top:0;
-  left:0;
-  width:100vw;
-  height:100vh;
+  inset:0;
   z-index:-1;
-
   background:
     radial-gradient(circle at 0% 0%, rgba(180,200,255,0.35), transparent 40%),
     radial-gradient(circle at 100% 100%, rgba(180,200,255,0.35), transparent 40%),
@@ -44,14 +40,13 @@ body{
 .phone{
   width:100%;
   min-height:100vh;
-  padding:40px 0;   /* 横paddingは使わない */
+  padding:40px 0;
 }
 
 /* ======================
-   タイトル
+   ヘッダ
 ====================== */
 .header{
-  width:100%;
   text-align:center;
 }
 
@@ -69,304 +64,148 @@ body{
 }
 
 /* ======================
-   キラキラ共通（重要）
-====================== */
-/* ======================
-   タイトル周りキラキラ（統一）
-====================== */
-/* ======================
-   キラキラ固定レイヤー
-====================== */
-.sparkle-layer{
-  position: absolute;
-  top: 30px;
-  left: 0;
-  width: 100vw;
-  height: 120px;
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* キラキラ共通 */
-.sparkle{
-  position:absolute;
-  width:10px;
-  height:10px;
-  background:#b7c6f0;
-
-  clip-path:polygon(
-    50% 0%,60% 35%,100% 35%,
-    65% 55%,80% 100%,50% 75%,
-    20% 100%,35% 55%,0% 35%,40% 35%
-  );
-}
-
-/* ✅ 画面基準（px固定） */
-.title-s1{ top:20px;  left:calc(50% - 140px); }
-.title-s2{ top:55px;  left:calc(50% - 90px); }
-.title-s3{ top:18px;  left:calc(50% + 100px); }
-.title-s4{ top:58px;  left:calc(50% + 150px); }
-
-/* タイトル周り */
-.title-wrap{
-  position:relative;
-  width:100%;
-  max-width:420px;   /* ✅ 画面ごとに揃える */
-  margin:0 auto;     /* ✅ 中央基準を統一 */
-}
-
-/* ======================
    カード
 ====================== */
 .card{
-  width:calc(100vw - 16px); /* ✅ 以前より太い（左右8px） */
-  max-width:390px;          /* ✅ 上限も少し拡張 */
+  width:calc(100vw - 16px);
+  max-width:390px;
   margin:16px auto;
-
   padding:22px;
   border-radius:22px;
-
   background:white;
   box-shadow:0 10px 24px rgba(0,0,0,.08);
 }
 
 /* ======================
-   アイコン
+   問題表示
 ====================== */
-.icon-wrap{
-  position:relative;
-  width:110px;
-  height:110px;
-  margin:0 auto 16px;
+.quiz-card{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
 }
 
-.icon-bg{
-  width:100%;
-  height:100%;
-  border-radius:50%;
-  background: radial-gradient(circle,#eef2ff,#d8e0f5);
-}
-
-.icon-hourglass{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  width:60px;
-  height:60px;
-}
-
-/* ======================
-   カード内キラキラ
-====================== */
-.s1{ top:10px; left:-20px; }
-.s2{ top:20px; right:-20px; }
-.s3{ bottom:20px; left:-25px; }
-.s4{ bottom:10px; right:-25px; }
-.s5{ top:40px; left:-40px; }
-.s6{ top:40px; right:-40px; }
-
-/* ======================
-   テキスト
-====================== */
-.wait-title{
+#q{
+  font-size:17px;
+  line-height:1.6;
   text-align:center;
-  font-size:18px;
-  font-weight:bold;
 }
-
-.wait-sub{
-  text-align:center;
-  font-size:13px;
-  margin-top:8px;
-}
-
-/* ======================
-   入力
-====================== */
-#name{
-  width:100%;
-  padding:14px;
-  font-size:16px;
-  border-radius:12px;
-  border:2px solid #5c6cff;
-  margin-bottom:10px;
-}
-
-#btnJoin{
-  width:100%;
-  height:50px;
-  border:none;
-  border-radius:12px;
-  background:#5c6cff;
-  color:white;
-  font-size:16px;
-}
-
-/* ======================
-   問題
-====================== */
 
 #qImg{
   display:none;
   max-width:100%;
-  margin-bottom:10px;
+  border-radius:12px;
+  pointer-events:none;
+  user-select:none;
+  -webkit-touch-callout:none;
 }
 
 /* ======================
-   選択肢
+   選択肢（2×2）
 ====================== */
+#choices{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
 
+/* 選択肢本体 */
 .choice{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  min-height:56px;
   padding:14px;
-  border-radius:12px;
-  text-align:center;
+
+  border-radius:14px;
+  font-size:15px;
+  line-height:1.4;
+
+  color:white;
+  cursor:pointer;
+  user-select:none;
+
   transition:0.2s;
 }
 
 /* 色 */
-.c0{ background:#e74c3c; color:white; }
-.c1{ background:#3498db; color:white; }
+.c0{ background:#e74c3c; }
+.c1{ background:#3498db; }
 .c2{ background:#f1c40f; color:black; }
-.c3{ background:#2ecc71; color:white; }
+.c3{ background:#2ecc71; }
 
-/* 選択後 */
-.dim{ opacity:0.3; }
-
-.selected{
-  opacity:0.3;
-  border:3px solid black;
+.choice.selected{
+  outline:3px solid #000;   /* ✅ 黒枠 */
+  opacity:0.35;             /* ✅ 薄い */
 }
 
-.disabled{
+/* ======================
+   正解（解答表示時）
+====================== */
+/* ✅ 正解は必ず最優先 */
+.choice.correct{
+  opacity:1 !important;
+  outline:none;
+}
+
+
+/* ======================
+   その他
+====================== */
+.choice.dim{
+  opacity:0.25;
+}
+
+/* ======================
+   押せない
+====================== */
+.choice.disabled{
   pointer-events:none;
   opacity:0.4;
-  filter: grayscale(0.3);
-}
-
-.choice:not(.disabled):active{
-  transform:scale(0.96);
+  filter:grayscale(0.3);
 }
 
 /* ======================
-   ランキング
+   状態表示
 ====================== */
-#rankList{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-
-.rank-row{
-  display:flex;
-  align-items:center;
-
-  padding:12px 14px;
-  border-radius:12px;
-
-  background:white;
-  box-shadow:0 4px 10px rgba(0,0,0,0.04);
-
-  gap:14px;
-}
-
-.rank-num{
-  min-width:42px;
-  background:#e8efff;
-  color:#5c6cff;
-  text-align:center;
-  padding:6px;
-  border-radius:8px;
-  font-weight:bold;
-}
-
-.rank-name{
-  flex:1;
-}
-
-.rank-score{
-  min-width:60px;
-  text-align:right;
-  color:#5c6cff;
-  font-weight:bold;
-}
-
-/* ======================
-   問題表示
-====================== */
-.question-index{
-  font-size:14px;
-  font-weight:bold;
-  color:#5c6cff;
-  margin-bottom:6px;
-}
-
-.question-text{
-  font-size:17px;
-  line-height:1.6;
-  margin-bottom:18px;
-}
-
-.choices{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-
-.choice{
-  width:100%;
-  padding:14px 16px;
-  border-radius:14px;
-  border:none;
-  text-align:left;
-  font-size:15px;
-  cursor:pointer;
-  transition:0.15s;
-}
-
-.choice:active{
-  transform:scale(0.97);
-}
-
 .quiz-status{
-  margin-top:16px;
   text-align:center;
   font-size:13px;
   color:#777;
 }
 
 /* ======================
-   解答画面
+   解答結果UI
 ====================== */
-.answer-card{
+.answer-result{
+  margin-top:20px;
+  padding-top:16px;
+  border-top:1px dashed #ddd;
   text-align:center;
 }
 
 .result-text{
   font-size:22px;
   font-weight:bold;
-  margin-bottom:12px;
-}
-
-.result-text.correct{
-  color:#44b38b;
-}
-
-.result-text.wrong{
-  color:#e25555;
-}
-
-.answer-info{
-  font-size:15px;
   margin-bottom:10px;
 }
 
-.answer-number{
+.result-text.correct{ color:#44b38b; }
+.result-text.wrong{ color:#e25555; }
+
+.answer-detail{
+  font-size:14px;
+  margin-bottom:6px;
+}
+
+.answer-detail span{
   font-weight:bold;
   color:#5c6cff;
 }
 
 .score-text{
+  margin-top:10px;
   font-size:14px;
   color:#555;
 }
@@ -374,7 +213,7 @@ body{
 /* ======================
    ランキング
 ====================== */
-.ranking-list{
+#rankList{
   display:flex;
   flex-direction:column;
   gap:10px;
@@ -402,159 +241,9 @@ body{
   font-weight:bold;
 }
 
-.rank-name{
-  flex:1;
-}
+.rank-name{ flex:1; }
+.rank-score{ font-weight:bold; color:#5c6cff; }
 
-.rank-score{
-  font-weight:bold;
-  color:#5c6cff;
-}
-
-.rank1{
-  border:2px solid #ffd54f;
-}
-.rank2{
-  border:2px solid #cfd8dc;
-}
-.rank3{
-  border:2px solid #ffcc80;
-}
-
-/* ======================
-   問題表示UI
-====================== */
-
-/* 問題文 */
-.question-text{
-  font-size:17px;
-  line-height:1.6;
-  margin-bottom:18px;
-}
-
-/* ✅ 選択肢コンテナ */
-.choices{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-
-/* ✅ JSが生成する選択肢 */
-.choice{
-  display:block;              /* ← 超重要 */
-  width:100%;
-
-  padding:14px 16px;
-  border-radius:14px;
-
-  font-size:15px;
-  line-height:1.4;
-
-  color:white;
-  cursor:pointer;
-  user-select:none;
-
-  transition:0.15s;
-}
-
-/* 押せる時 */
-.choice:not(.disabled):active{
-  transform:scale(0.97);
-}
-
-/* 状態表示 */
-.quiz-status{
-  margin-top:16px;
-  text-align:center;
-  font-size:13px;
-  color:#777;
-}
-
-.disabled{
-  pointer-events:none;
-  opacity:0.4;
-  filter: grayscale(0.3);
-}
-
-
-
-
-
-
-
-
-
-/* ======================
-   問題表示カード
-====================== */
-.quiz-card{
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-}
-
-/* 問題文 */
-#q{
-  font-size:17px;
-  line-height:1.6;
-  text-align:center;
-}
-
-/* ======================
-   選択肢エリア（唯一の定義）
-====================== */
-#choices{
-  display:grid;
-  grid-template-columns:1fr 1fr;  /* ✅ 2列 */
-  gap:12px;
-}
-
-/* 選択肢（JSが生成する div） */
-.choice{
-  display:block;
-  width:100%;
-
-  padding:14px 16px;
-  border-radius:14px;
-
-  font-size:15px;
-  line-height:1.4;
-  text-align:left;
-
-  color:white;
-  cursor:pointer;
-  user-select:none;
-
-  transition:0.15s;
-}
-
-/* 押せる時 */
-.choice:not(.disabled):active{
-  transform:scale(0.97);
-}
-
-/* 回答不可 */
-.choice.disabled{
-  pointer-events:none;
-  opacity:0.4;
-  filter:grayscale(0.3);
-}
-
-/* 選択後 */
-.choice.selected{
-  outline:3px solid black;
-  opacity:0.35;
-}
-
-/* 他を薄く */
-.choice.dim{
-  opacity:0.25;
-}
-
-/* 状態表示 */
-.quiz-status{
-  margin-top:12px;
-  text-align:center;
-  font-size:13px;
-  color:#777;
-}
+.rank1{ border:2px solid #ffd54f; }
+.rank2{ border:2px solid #cfd8dc; }
+.rank3{ border:2px solid #ffcc80; }

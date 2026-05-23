@@ -25,7 +25,6 @@ let userId = localStorage.getItem("userId");
 let savedEventId = localStorage.getItem("eventId");
 
 let myChoice = null;
-let lastQ = null;
 let currentState = null;
 let hasAnswered = false;
 
@@ -60,7 +59,6 @@ document.getElementById("btnJoin").onclick = async ()=>{
   userId = ref.id;
   localStorage.setItem("userId", userId);
 
-  /* ✅ 超重要：イベント保存 */
   localStorage.setItem("eventId", currentState.eventId);
   savedEventId = currentState.eventId;
 
@@ -72,20 +70,26 @@ document.getElementById("btnJoin").onclick = async ()=>{
 ====================== */
 function render(q, showAnswer){
 
+  /* 問題文 */
   document.getElementById("q").innerText = q.text;
 
+  /* 画像（ある時だけ） */
   const img = document.getElementById("qImg");
-  if(q.image){
-    img.src = q.image;
-    img.style.display = "block";
-  }else{
-    img.style.display = "none";
+  if(img){
+    if(q.image){
+      img.src = q.image;
+      img.style.display = "block";
+      img.oncontextmenu = ()=>false; // 保存禁止
+    }else{
+      img.style.display = "none";
+    }
   }
 
+  /* 選択肢 */
   const choicesEl = document.getElementById("choices");
   choicesEl.innerHTML = "";
 
-  const label = ["①","②","③","④"];
+  const labels = ["①","②","③","④"];
 
   q.choices.forEach((c,i)=>{
     const div = document.createElement("div");
@@ -97,10 +101,25 @@ function render(q, showAnswer){
       !showAnswer &&
       !hasAnswered;
 
-    if(!showAnswer && myChoice !== null){
-      if(i === myChoice){
-        cls += " selected";
-      }else{
+    /* ===== 表示ロジック ===== */
+    /* ===== 表示ロジック（最終版） ===== */
+
+    /* 解答表示 */
+    if (showAnswer) {
+      if (i === q.answer) {
+        cls += " correct";     // ✅ 正解は必ず鮮やか
+      } else if (i === myChoice) {
+        cls += " selected";    // 選んだ不正解（黒枠＋薄い）
+      } else {
+        cls += " dim";
+      }
+    }
+
+    /* 解答前 */
+    else {
+      if (i === myChoice) {
+        cls += " selected";    // 黒枠＋薄い
+      } else if (myChoice !== null) {
         cls += " dim";
       }
     }
@@ -108,7 +127,7 @@ function render(q, showAnswer){
     if(!clickable) cls += " disabled";
 
     div.className = cls;
-    div.innerHTML = `${label[i]}<br>${c}`;
+    div.innerHTML = `${labels[i]}<br>${c}`;
 
     if(clickable){
       div.onclick = ()=> answer(i);
@@ -117,16 +136,15 @@ function render(q, showAnswer){
     choicesEl.appendChild(div);
   });
 
+  /* 状態表示 */
   const status = document.getElementById("quizStatus");
-  if(currentState.acceptingAnswers){
-    status.innerText = "回答受付中";
-  }else{
-    status.innerText = "回答受付終了";
-  }
+  status.innerText = currentState.acceptingAnswers
+    ? "回答受付中"
+    : "回答受付終了";
 }
 
 /* ======================
-   得点
+   得点加算
 ====================== */
 async function addScore(){
   const aRef = doc(db,"answers","q"+currentState.questionId,"users",userId);
@@ -138,7 +156,6 @@ async function addScore(){
 
   const pRef = doc(db,"players",userId);
   const pSnap = await getDoc(pRef);
-
   const current = pSnap.data()?.score || 0;
 
   await setDoc(pRef,{ score: current + 1 },{ merge:true });
@@ -146,45 +163,35 @@ async function addScore(){
 }
 
 /* ======================
-   状態監視（最重要）
+   状態監視
 ====================== */
 onSnapshot(doc(db,"game","state"), async snap=>{
   if(!snap.exists()) return;
 
   currentState = snap.data();
 
-  /* ✅ 未参加 */
+  /* 未参加 */
   if(!userId){
-
-    if(currentState.mode === "join"){
-      show("join");
-    }else{
-      show("blocked");   // ✅ 出るようになる
-    }
-
+    show(currentState.mode === "join" ? "join" : "blocked");
     return;
   }
 
-  /* ✅ イベント違い → 強制退出 */
+  /* イベント違い */
   if(savedEventId !== currentState.eventId){
-
-    localStorage.removeItem("userId");
-    localStorage.removeItem("eventId");
-
+    localStorage.clear();
     userId = null;
     savedEventId = null;
-
-    show("blocked");   // ✅ ここ重要
+    show("blocked");
     return;
   }
 
-  /* ✅ 通常遷移 */
-
+  /* 待機 */
   if(currentState.mode === "waiting"){
     show("wait");
     return;
   }
 
+  /* 問題 */
   if(currentState.mode === "question"){
     show("quiz");
 
@@ -194,10 +201,14 @@ onSnapshot(doc(db,"game","state"), async snap=>{
     myChoice = null;
     hasAnswered = false;
 
+    const resultBox = document.getElementById("answerResult");
+    if(resultBox) resultBox.style.display = "none";
+
     render(qSnap.data(), false);
     return;
   }
 
+  /* 解答表示 */
   if(currentState.mode === "answer"){
     show("quiz");
 
@@ -205,24 +216,39 @@ onSnapshot(doc(db,"game","state"), async snap=>{
     if(!qSnap.exists()) return;
 
     const q = qSnap.data();
-
-    render(q,true);
-
-    document.getElementById("result").innerText =
-      (myChoice === q.answer) ? "正解" : "不正解";
-
-    document.getElementById("answerText").innerText =
-      "正解は " + (q.answer + 1);
+    render(q, true);
 
     await addScore();
 
-    const pSnap = await getDoc(doc(db,"players",userId));
-    document.getElementById("scoreText").innerText =
-      "スコア: " + (pSnap.data()?.score || 0);
+    /* 結果UI */
+    const resultBox = document.getElementById("answerResult");
+    if(resultBox){
+      resultBox.style.display = "block";
+
+      const resultText = document.getElementById("resultText");
+      const myAnswerEl = document.getElementById("myAnswer");
+      const correctAnswerEl = document.getElementById("correctAnswer");
+      const scoreEl = document.getElementById("score");
+
+      if(myChoice === q.answer){
+        resultText.innerText = "正解！";
+        resultText.className = "result-text correct";
+      }else{
+        resultText.innerText = "不正解";
+        resultText.className = "result-text wrong";
+      }
+
+      myAnswerEl.innerText = q.choices[myChoice] ?? "未回答";
+      correctAnswerEl.innerText = q.choices[q.answer];
+
+      const pSnap = await getDoc(doc(db,"players",userId));
+      scoreEl.innerText = pSnap.data()?.score || 0;
+    }
 
     return;
   }
 
+  /* ランキング */
   if(currentState.mode === "ranking"){
     show("ranking");
 
@@ -230,7 +256,6 @@ onSnapshot(doc(db,"game","state"), async snap=>{
     if(!snapRank.exists()) return;
 
     let html = "";
-
     snapRank.data().top10.forEach((p,i)=>{
       html += `
         <div class="rank-row">
@@ -257,8 +282,7 @@ window.answer = async (i)=>{
   const qSnap = await getDoc(doc(db,"questions","q"+currentState.questionId));
   if(!qSnap.exists()) return;
 
-  const q = qSnap.data();
-  render(q,false);
+  render(qSnap.data(), false);
 
   await setDoc(
     doc(db,"answers","q"+currentState.questionId,"users",userId),
@@ -266,7 +290,7 @@ window.answer = async (i)=>{
       choice: i,
       eventId: currentState.eventId,
       answered: true,
-      scored: (i === q.answer),
+      scored: (i === qSnap.data().answer),
       answeredAt: Date.now()
     },
     { merge:true }
