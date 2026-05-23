@@ -6,37 +6,35 @@
 }
 
 /* ======================
-   body（スマホ基準）
+   body（最重要修正）
 ====================== */
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 
-  /* ❌ flex削除（これが縮小の原因） */
+  /* ✅ flex 제거（縮小の原因） */
   display:block;
 
-  /* ✅ 背景 */
+  /* ✅ 背景（1枚に固定） */
   background:
-    radial-gradient(circle at 0% 0%,
-      rgba(180,200,255,0.35), transparent 40%),
-    radial-gradient(circle at 100% 100%,
-      rgba(180,200,255,0.35), transparent 40%),
+    radial-gradient(circle at 0% 0%, rgba(180,200,255,0.35), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(180,200,255,0.35), transparent 40%),
     linear-gradient(180deg,#f7f9ff,#e5ebf5);
 
-  background-repeat:no-repeat;
-  background-size:100% 100%;
+  background-repeat:no-repeat;     /* ✅ 繰り返し防止 */
+  background-attachment:fixed;     /* ✅ スクロールでも1枚 */
 
   min-height:100vh;
 }
 
 /* ======================
-   ✅ スマホレイアウト本体
+   ✅ レイアウト（スマホ対応）
 ====================== */
 .phone{
-  width:100%;               /* ✅ 画面いっぱい */
-  max-width:420px;         /* ✅ PCだけ制限 */
-  margin:0 auto;           /* ✅ PC中央 */
+  width:100%;        /* ✅ 画面いっぱい */
+  max-width:420px;   /* ✅ PCだけ制限 */
 
+  margin:0 auto;
   padding:20px 16px 40px;
 }
 
@@ -48,14 +46,12 @@ body{
   margin-bottom:20px;
 }
 
-/* タイトル */
 .title{
   font-size:22px;
   font-weight:bold;
   text-align:center;
 }
 
-/* 下線 */
 .title-bar{
   width:60px;
   height:4px;
@@ -69,6 +65,7 @@ body{
 ====================== */
 .title-wrap{
   position:relative;
+  display:block;
   width:100%;
 }
 
@@ -85,22 +82,22 @@ body{
   );
 }
 
-/* ✅ 非対称維持 */
-.title-s1{ top:-20px; left:10%; }
-.title-s2{ top:30px; left:20%; }
-.title-s3{ top:-5px; right:10%; }
-.title-s4{ top:15px; right:20%; }
+/* ✅ 左右バランス（画面基準） */
+.title-s1{ top:-20px; left:15%; }
+.title-s2{ top:30px; left:25%; }
+.title-s3{ top:-5px; right:15%; }
+.title-s4{ top:15px; right:25%; }
 
 /* ======================
    カード
 ====================== */
 .card{
   width:100%;
+  margin-top:20px;
+
   background:white;
   border-radius:22px;
-
   padding:20px;
-  margin-top:20px;
 
   box-shadow:0 10px 24px rgba(0,0,0,.08);
 }
@@ -138,7 +135,7 @@ body{
 }
 
 /* ======================
-   カードキラキラ（位置維持）
+   カード内キラキラ
 ====================== */
 .sparkle-card{
   position:absolute;
@@ -191,11 +188,11 @@ body::after{
 }
 
 body::before{
-  left:20px;
+  left:15px;
   bottom:100px;
 }
 
 body::after{
-  right:20px;
+  right:15px;
   bottom:80px;
 }
