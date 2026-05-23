@@ -5,65 +5,60 @@
   box-sizing:border-box;
 }
 
+/* ======================
+   ✅ 画面をフル使用（最重要）
+====================== */
 html, body{
   margin:0;
-  height:100%;
+  padding:0;
+
+  width:100vw;
+  height:100vh;
+
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+
+  overflow-x:hidden;
 }
 
 /* ======================
-   ✅ 背景レイヤー（最重要）
+   ✅ 背景（1枚固定・画面ぴったり）
 ====================== */
-body::before{
-  content:"";
+.bg{
   position:fixed;
-  inset:0;                 /* 画面全体 */
+  top:0;
+  left:0;
+
+  width:100vw;
+  height:100vh;
 
   z-index:-1;
 
-  /* ✅ ここに全部まとめる */
   background:
     radial-gradient(circle at 0% 0%, rgba(180,200,255,0.35), transparent 40%),
     radial-gradient(circle at 100% 100%, rgba(180,200,255,0.35), transparent 40%),
     linear-gradient(180deg,#f7f9ff,#e5ebf5);
-
-  background-repeat:no-repeat;
 }
 
 /* ======================
-   ドット（固定）
-====================== */
-body::after{
-  content:"";
-  position:fixed;
-  inset:0;
-
-  pointer-events:none;
-
-  background:
-    radial-gradient(#bcc7e6 2px, transparent 2px) no-repeat 20px calc(100% - 120px) / 120px 120px,
-    radial-gradient(#bcc7e6 2px, transparent 2px) no-repeat calc(100% - 20px) calc(100% - 100px) / 120px 120px;
-
-  opacity:0.25;
-}
-
-/* ======================
-   レイアウト
+   ✅ コンテンツ（画面基準）
 ====================== */
 .phone{
   width:100%;
-  max-width:420px;
+  min-height:100vh;
 
-  margin:0 auto;
-  padding:20px 16px 40px;
+  padding:40px 16px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
 /* ======================
-   ヘッダー
+   タイトル
 ====================== */
 .header{
+  width:100%;
   text-align:center;
-  margin-bottom:20px;
 }
 
 .title{
@@ -101,22 +96,24 @@ body::after{
   );
 }
 
-/* バランス配置 */
-.title-s1{ top:-20px; left:15%; }
-.title-s2{ top:30px; left:25%; }
-.title-s3{ top:-5px; right:15%; }
-.title-s4{ top:15px; right:25%; }
+/* ✅ 画面基準で配置 */
+.title-s1{ top:-20px; left:20%; }
+.title-s2{ top:20px; left:30%; }
+.title-s3{ top:-10px; right:20%; }
+.title-s4{ top:20px; right:30%; }
 
 /* ======================
    カード
 ====================== */
 .card{
   width:100%;
-  margin-top:20px;
+  max-width:320px;   /* ✅ 中央カードの幅 */
+
+  margin-top:30px;
 
   background:white;
   border-radius:22px;
-  padding:20px;
+  padding:22px;
 
   box-shadow:0 10px 24px rgba(0,0,0,.08);
 }
@@ -125,10 +122,10 @@ body::after{
    アイコン
 ====================== */
 .icon-wrap{
-  position:relative;
-  width:110px;
-  height:110px;
+  width:100px;
+  height:100px;
   margin:0 auto 16px;
+  position:relative;
 }
 
 .icon-bg{
@@ -143,12 +140,12 @@ body::after{
   top:50%;
   left:50%;
   transform:translate(-50%,-50%);
-  width:44px;
-  height:44px;
+  width:42px;
+  height:42px;
 }
 
 /* ======================
-   カードキラキラ
+   キラキラ（カード）
 ====================== */
 .sparkle-card{
   position:absolute;
@@ -163,13 +160,12 @@ body::after{
   );
 }
 
-/* 配置そのまま */
-.s1{ top:8px; left:-20px; }
-.s2{ top:15px; right:-25px; }
-.s3{ bottom:15px; left:-25px; }
-.s4{ bottom:10px; right:-30px; }
-.s5{ top:45px; left:-40px; }
-.s6{ top:45px; right:-40px; }
+.s1{ top:10px; left:-20px; }
+.s2{ top:20px; right:-20px; }
+.s3{ bottom:20px; left:-25px; }
+.s4{ bottom:10px; right:-25px; }
+.s5{ top:40px; left:-40px; }
+.s6{ top:40px; right:-40px; }
 
 /* ======================
    テキスト
