@@ -75,7 +75,7 @@ html, body{
 ====================== */
 .sparkle-layer{
   position:fixed;
-  top:44px;              /* ✅ ここが重要（iOS基準） */
+  top:30px;              /* ✅ ここが重要（iOS基準） */
   left:0;
   width:100vw;
   height:120px;
