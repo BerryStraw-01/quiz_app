@@ -21,7 +21,7 @@ const app = initializeApp({
 const db = getFirestore(app);
 
 /* =====================================================
-   state（admin側）
+   state
 ===================================================== */
 let state = {
   mode: "waiting",
@@ -33,37 +33,51 @@ let state = {
 let currentTab = "q";
 let unsubscribeAnswers = null;
 
-/* ✅ 参加人数（数値で保持） */
+/* ✅ 参加人数 */
 let playerCount = 0;
 
 /* =====================================================
-   タブ切替
+   タブ切替（新構成）
 ===================================================== */
 document.getElementById("tab-q").onclick = () => showTab("q");
-document.getElementById("tab-a").onclick = () => showTab("a");
+document.getElementById("tab-status").onclick = () => showTab("status");
 
 function showTab(tab){
+
   currentTab = tab;
 
   document.getElementById("tab-q-area").style.display =
     tab === "q" ? "block" : "none";
-  document.getElementById("tab-a-area").style.display =
-    tab === "a" ? "block" : "none";
+
+  document.getElementById("tab-status-area").style.display =
+    tab === "status" ? "block" : "none";
 
   document.getElementById("tab-q").classList.toggle("active", tab === "q");
-  document.getElementById("tab-a").classList.toggle("active", tab === "a");
+  document.getElementById("tab-status").classList.toggle("active", tab === "status");
 
-  if(tab === "a"){
-    startAnswerListener();
+  if(tab === "status"){
+    renderStatus();
   }
 }
 
 /* =====================================================
-   ✅ 参加人数（リアルタイム監視）
+   状況描画（回答 or ランキング）
+===================================================== */
+function renderStatus(){
+
+  if(state.mode === "ranking"){
+    showRanking();
+    return;
+  }
+
+  startAnswerListener();
+}
+
+/* =====================================================
+   ✅ 参加人数（リアルタイム）
 ===================================================== */
 onSnapshot(collection(db,"players"), snap=>{
 
-  // eventId 未設定時
   if(!state.eventId){
     playerCount = 0;
     document.getElementById("playerCount").innerText = "参加人数：0人";
@@ -78,31 +92,33 @@ onSnapshot(collection(db,"players"), snap=>{
     }
   });
 
-  playerCount = count; // ✅ 数値で保存
+  playerCount = count;
 
   document.getElementById("playerCount").innerText =
     `参加人数：${count}人`;
 });
 
 /* =====================================================
-   ✅ 回答状況（問題別）
+   ✅ 回答状況
 ===================================================== */
 async function startAnswerListener(){
 
-  // 既存リスナー解除
+  // ✅ ランキング時は動かない
+  if(state.mode === "ranking"){
+    return;
+  }
+
   if(unsubscribeAnswers){
     unsubscribeAnswers();
     unsubscribeAnswers = null;
   }
 
-  // 問題未選択
   if(state.questionId === null){
     document.getElementById("answerStatus").innerHTML =
       "<div class='answer-info'>問題が選択されていません</div>";
     return;
   }
 
-  // 問題取得
   const qSnap = await getDoc(doc(db,"questions","q"+state.questionId));
   if(!qSnap.exists()) return;
   const q = qSnap.data();
@@ -114,7 +130,6 @@ async function startAnswerListener(){
     const count = Array(q.choices.length).fill(0);
     let answered = 0;
 
-    /* ✅ 回答集計 */
     snap.forEach(d=>{
       const a = d.data();
 
@@ -124,7 +139,6 @@ async function startAnswerListener(){
       }
     });
 
-    /* ✅ UI作成 */
     let html = `
       <div class="answer-info">
         <div class="answer-title">
@@ -138,12 +152,10 @@ async function startAnswerListener(){
       <div class="answer-table">
     `;
 
-    /* ✅ 選択肢描画 */
     q.choices.forEach((t,i)=>{
 
-      // ✅ 正解は「受付終了後のみ」表示
       const isCorrect =
-        (i === q.answer) && !state.acceptingAnswers;
+        (i === q.answer) && state.mode === "answer";
 
       const cls = isCorrect
         ? "answer-row correct"
@@ -165,14 +177,14 @@ async function startAnswerListener(){
 }
 
 /* =====================================================
-   ✅ ランキング生成（playersベース）
+   ✅ ランキング生成
 ===================================================== */
 async function buildAndSaveRanking(){
 
   const snap = await getDocs(collection(db,"players"));
   const result = [];
 
-  snap.forEach(docSnap => {
+  snap.forEach(docSnap=>{
     const d = docSnap.data();
 
     if(d.eventId !== state.eventId) return;
@@ -194,9 +206,14 @@ async function buildAndSaveRanking(){
 }
 
 /* =====================================================
-   ランキング表示
+   ✅ ランキング表示
 ===================================================== */
 async function showRanking(){
+
+  if(unsubscribeAnswers){
+    unsubscribeAnswers();
+    unsubscribeAnswers = null;
+  }
 
   const snap = await getDoc(doc(db,"ranking","current"));
   if(!snap.exists()) return;
@@ -204,23 +221,38 @@ async function showRanking(){
   const r = snap.data();
   if(r.eventId !== state.eventId) return;
 
-  let html = `<div class="ranking-list">`;
+  const top10 = r.top10 || [];
 
-  r.top10.forEach((p,i)=>{
+  let html = `
+    <div class="answer-info">
+      <div class="answer-title">ランキング</div>
+    </div>
+
+    <div class="ranking-list">
+  `;
+
+  top10.forEach((p,i)=>{
+
+    let cls = "ranking-row";
+
+    // ✅ 1〜3位だけ少し強調
+    if(i === 0) cls += " rank1";
+    else if(i === 1) cls += " rank2";
+    else if(i === 2) cls += " rank3";
+
     html += `
-      <div class="ranking-row">
-        <div class="rank">${i+1}位</div>
+      <div class="${cls}">
+        <div class="rank">${i+1}</div>
         <div class="rank-name">${p.name}</div>
         <div class="rank-score">${p.score}点</div>
       </div>
     `;
   });
 
-  html += `</div>`;
+  html += "</div>";
 
   document.getElementById("answerStatus").innerHTML = html;
 }
-
 /* =====================================================
    問題一覧
 ===================================================== */
@@ -298,7 +330,7 @@ function setActive(id,on){
 }
 
 /* =====================================================
-   進行ボタン
+   進行
 ===================================================== */
 function clearAndSet(mode){
   setDoc(doc(db,"game","state"),{
@@ -320,7 +352,11 @@ document.getElementById("btnAnswer").onclick =
 document.getElementById("btnRanking").onclick = async ()=>{
   await buildAndSaveRanking();
   await setDoc(doc(db,"game","state"),{ mode:"ranking" },{ merge:true });
-  await showRanking();
+
+  // ✅ 状況タブが開いていれば即反映
+  if(currentTab === "status"){
+    showRanking();
+  }
 };
 
 document.getElementById("btnToggle").onclick = async ()=>{
@@ -348,7 +384,7 @@ document.querySelector(".reset").onclick = ()=>{
 };
 
 /* =====================================================
-   Firestore state 監視
+   state監視
 ===================================================== */
 onSnapshot(doc(db,"game","state"), snap=>{
 
@@ -356,12 +392,8 @@ onSnapshot(doc(db,"game","state"), snap=>{
 
   updateUI(snap.data());
 
-  if(state.mode==="ranking"){
-    showRanking();
-  }
-
-  if(currentTab==="a"){
-    startAnswerListener();
+  if(currentTab === "status"){
+    renderStatus();
   }
 });
 

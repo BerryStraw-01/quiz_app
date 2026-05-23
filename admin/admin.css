@@ -359,3 +359,74 @@ body{
 .q-card.active{
   background:#e8efff;   /* ✅ 青系に変更 */
 }
+
+/* ======================
+   ランキング（シンプル版）
+====================== */
+
+.ranking-list{
+  background:#f7f9ff;
+  border-radius:14px;
+  padding:10px;
+}
+
+/* 行 */
+.ranking-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:6px;
+  background:white;
+  border:1px solid #eee;
+}
+
+/* 順位 */
+.rank{
+  width:32px;
+  height:32px;
+  border-radius:8px;
+  background:#e8efff;
+  color:#5c6cff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+}
+
+/* 名前 */
+.rank-name{
+  flex:1;
+}
+
+/* スコア */
+.rank-score{
+  font-weight:bold;
+  color:#5c6cff;
+}
+
+/* ✅ 1位（ちょい強調） */
+.rank1{
+  border:2px solid #ffd54f;
+}
+.rank1 .rank{
+  background:#ffd54f;
+  color:black;
+}
+
+/* ✅ 2位 */
+.rank2{
+  border:2px solid #cfd8dc;
+}
+.rank2 .rank{
+  background:#cfd8dc;
+}
+
+/* ✅ 3位 */
+.rank3{
+  border:2px solid #ffcc80;
+}
+.rank3 .rank{
+  background:#ffcc80;
+}
