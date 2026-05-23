@@ -269,3 +269,46 @@ width:96px;
 .mode-btn.question.active{
   background:#f2b84b;
 }
+
+/* ===============================
+   進行ボタン：レスポンシブ対応
+   =============================== */
+
+/* デフォルト（PC / タブレット） */
+.mode-row{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:16px;
+}
+
+/* SVGは親基準でスケール */
+.mode-btn svg{
+  width:60%;
+  height:auto;
+  max-width:72px;
+  max-height:72px;
+}
+
+/* スマホ対応 */
+@media (max-width: 480px){
+
+  /* 3列 + 2段にする */
+  .mode-row{
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+  }
+
+  /* ボタンを少し低く */
+  .mode-btn{
+    height:140px;
+    border-radius:22px;
+    font-size:14px;
+    gap:10px;
+  }
+
+  /* SVGを縮める */
+  .mode-btn svg{
+    width:55%;
+    max-width:52px;
+  }
+}
