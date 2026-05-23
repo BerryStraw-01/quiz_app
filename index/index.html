@@ -139,6 +139,104 @@
         </div>
     </div>
 
+    <!-- ======================
+     回答画面（問題表示）
+====================== -->
+    <!-- ======================
+     回答画面（問題表示）
+====================== -->
+    <!-- ======================
+     問題表示画面
+====================== -->
+    <div id="quiz" style="display:none;">
+
+        <div class="header">
+            <h1 class="title">クイズ</h1>
+            <div class="title-bar"></div>
+        </div>
+
+        <div class="card quiz-card">
+
+            <!-- 問題文 -->
+            <div id="q" class="question-text"></div>
+
+            <!-- ✅ 画像（ある時だけ表示） -->
+            <img id="qImg" />
+
+            <!-- 選択肢 -->
+            <div id="choices"></div>
+
+            <!-- 状態表示 -->
+            <div id="quizStatus" class="quiz-status">回答受付中</div>
+
+        </div>
+    </div>
+
+    <!-- ======================
+     解答画面（結果表示）
+====================== -->
+    <div id="answer" style="display:none;">
+
+        <div class="header">
+            <h1 class="title">結果</h1>
+            <div class="title-bar"></div>
+        </div>
+
+        <div class="card answer-card">
+
+            <div class="result-text correct">
+                正解！
+            </div>
+            <!-- 不正解のときは class="result-text wrong" -->
+
+            <div class="answer-info">
+                正解は <span class="answer-number">②</span> でした
+            </div>
+
+            <div class="score-text">
+                現在のスコア：<span id="score">3</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ======================
+     ランキング画面
+====================== -->
+    <div id="ranking" style="display:none;">
+
+        <div class="header">
+            <h1 class="title">ランキング</h1>
+            <div class="title-bar"></div>
+        </div>
+
+        <div class="card">
+
+            <div id="rankList" class="ranking-list">
+
+                <div class="rank-row rank1">
+                    <div class="rank">1位</div>
+                    <div class="rank-name">Alice</div>
+                    <div class="rank-score">5点</div>
+                </div>
+
+                <div class="rank-row rank2">
+                    <div class="rank">2位</div>
+                    <div class="rank-name">Bob</div>
+                    <div class="rank-score">4点</div>
+                </div>
+
+                <div class="rank-row rank3">
+                    <div class="rank">3位</div>
+                    <div class="rank-name">Carol</div>
+                    <div class="rank-score">3点</div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
 </div>
 
 <script type="module" src="index.js"></script>

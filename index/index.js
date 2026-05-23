@@ -116,6 +116,13 @@ function render(q, showAnswer){
 
     choicesEl.appendChild(div);
   });
+
+  const status = document.getElementById("quizStatus");
+  if(currentState.acceptingAnswers){
+    status.innerText = "回答受付中";
+  }else{
+    status.innerText = "回答受付終了";
+  }
 }
 
 /* ======================

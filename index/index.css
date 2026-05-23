@@ -206,11 +206,6 @@ body{
 /* ======================
    問題
 ====================== */
-#q{
-  text-align:center;
-  font-size:18px;
-  margin-bottom:10px;
-}
 
 #qImg{
   display:none;
@@ -221,11 +216,6 @@ body{
 /* ======================
    選択肢
 ====================== */
-#choices{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
 
 .choice{
   padding:14px;
@@ -299,4 +289,272 @@ body{
   text-align:right;
   color:#5c6cff;
   font-weight:bold;
+}
+
+/* ======================
+   問題表示
+====================== */
+.question-index{
+  font-size:14px;
+  font-weight:bold;
+  color:#5c6cff;
+  margin-bottom:6px;
+}
+
+.question-text{
+  font-size:17px;
+  line-height:1.6;
+  margin-bottom:18px;
+}
+
+.choices{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.choice{
+  width:100%;
+  padding:14px 16px;
+  border-radius:14px;
+  border:none;
+  text-align:left;
+  font-size:15px;
+  cursor:pointer;
+  transition:0.15s;
+}
+
+.choice:active{
+  transform:scale(0.97);
+}
+
+.quiz-status{
+  margin-top:16px;
+  text-align:center;
+  font-size:13px;
+  color:#777;
+}
+
+/* ======================
+   解答画面
+====================== */
+.answer-card{
+  text-align:center;
+}
+
+.result-text{
+  font-size:22px;
+  font-weight:bold;
+  margin-bottom:12px;
+}
+
+.result-text.correct{
+  color:#44b38b;
+}
+
+.result-text.wrong{
+  color:#e25555;
+}
+
+.answer-info{
+  font-size:15px;
+  margin-bottom:10px;
+}
+
+.answer-number{
+  font-weight:bold;
+  color:#5c6cff;
+}
+
+.score-text{
+  font-size:14px;
+  color:#555;
+}
+
+/* ======================
+   ランキング
+====================== */
+.ranking-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.rank-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border-radius:14px;
+  background:white;
+  border:1px solid #eee;
+}
+
+.rank{
+  width:42px;
+  height:32px;
+  border-radius:10px;
+  background:#e8efff;
+  color:#5c6cff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+}
+
+.rank-name{
+  flex:1;
+}
+
+.rank-score{
+  font-weight:bold;
+  color:#5c6cff;
+}
+
+.rank1{
+  border:2px solid #ffd54f;
+}
+.rank2{
+  border:2px solid #cfd8dc;
+}
+.rank3{
+  border:2px solid #ffcc80;
+}
+
+/* ======================
+   問題表示UI
+====================== */
+
+/* 問題文 */
+.question-text{
+  font-size:17px;
+  line-height:1.6;
+  margin-bottom:18px;
+}
+
+/* ✅ 選択肢コンテナ */
+.choices{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+/* ✅ JSが生成する選択肢 */
+.choice{
+  display:block;              /* ← 超重要 */
+  width:100%;
+
+  padding:14px 16px;
+  border-radius:14px;
+
+  font-size:15px;
+  line-height:1.4;
+
+  color:white;
+  cursor:pointer;
+  user-select:none;
+
+  transition:0.15s;
+}
+
+/* 押せる時 */
+.choice:not(.disabled):active{
+  transform:scale(0.97);
+}
+
+/* 状態表示 */
+.quiz-status{
+  margin-top:16px;
+  text-align:center;
+  font-size:13px;
+  color:#777;
+}
+
+.disabled{
+  pointer-events:none;
+  opacity:0.4;
+  filter: grayscale(0.3);
+}
+
+
+
+
+
+
+
+
+
+/* ======================
+   問題表示カード
+====================== */
+.quiz-card{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+/* 問題文 */
+#q{
+  font-size:17px;
+  line-height:1.6;
+  text-align:center;
+}
+
+/* ======================
+   選択肢エリア（唯一の定義）
+====================== */
+#choices{
+  display:grid;
+  grid-template-columns:1fr 1fr;  /* ✅ 2列 */
+  gap:12px;
+}
+
+/* 選択肢（JSが生成する div） */
+.choice{
+  display:block;
+  width:100%;
+
+  padding:14px 16px;
+  border-radius:14px;
+
+  font-size:15px;
+  line-height:1.4;
+  text-align:left;
+
+  color:white;
+  cursor:pointer;
+  user-select:none;
+
+  transition:0.15s;
+}
+
+/* 押せる時 */
+.choice:not(.disabled):active{
+  transform:scale(0.97);
+}
+
+/* 回答不可 */
+.choice.disabled{
+  pointer-events:none;
+  opacity:0.4;
+  filter:grayscale(0.3);
+}
+
+/* 選択後 */
+.choice.selected{
+  outline:3px solid black;
+  opacity:0.35;
+}
+
+/* 他を薄く */
+.choice.dim{
+  opacity:0.25;
+}
+
+/* 状態表示 */
+.quiz-status{
+  margin-top:12px;
+  text-align:center;
+  font-size:13px;
+  color:#777;
 }
