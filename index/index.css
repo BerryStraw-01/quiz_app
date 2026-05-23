@@ -17,6 +17,10 @@ html, body{
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 }
 
+body{
+  position: relative;
+}
+
 /* ======================
    背景
 ====================== */
@@ -74,15 +78,14 @@ html, body{
    キラキラ固定レイヤー
 ====================== */
 .sparkle-layer{
-  position: fixed;
-  top: calc(env(safe-area-inset-top) + 30px);
+  position: absolute;
+  top: 30px;
   left: 0;
   width: 100vw;
   height: 120px;
   pointer-events: none;
   z-index: 2;
 }
-``
 
 /* キラキラ共通 */
 .sparkle{
