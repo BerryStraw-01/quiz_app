@@ -1,38 +1,58 @@
 /* ======================
-   基本
+   初期化
 ====================== */
 *{
   box-sizing:border-box;
 }
 
-/* ======================
-   body（最重要修正）
-====================== */
-body{
+html, body{
   margin:0;
+  height:100%;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
 
-  /* ✅ flex 제거（縮小の原因） */
-  display:block;
+/* ======================
+   ✅ 背景レイヤー（最重要）
+====================== */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;                 /* 画面全体 */
 
-  /* ✅ 背景（1枚に固定） */
+  z-index:-1;
+
+  /* ✅ ここに全部まとめる */
   background:
     radial-gradient(circle at 0% 0%, rgba(180,200,255,0.35), transparent 40%),
     radial-gradient(circle at 100% 100%, rgba(180,200,255,0.35), transparent 40%),
     linear-gradient(180deg,#f7f9ff,#e5ebf5);
 
-  background-repeat:no-repeat;     /* ✅ 繰り返し防止 */
-  background-attachment:fixed;     /* ✅ スクロールでも1枚 */
-
-  min-height:100vh;
+  background-repeat:no-repeat;
 }
 
 /* ======================
-   ✅ レイアウト（スマホ対応）
+   ドット（固定）
+====================== */
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    radial-gradient(#bcc7e6 2px, transparent 2px) no-repeat 20px calc(100% - 120px) / 120px 120px,
+    radial-gradient(#bcc7e6 2px, transparent 2px) no-repeat calc(100% - 20px) calc(100% - 100px) / 120px 120px;
+
+  opacity:0.25;
+}
+
+/* ======================
+   レイアウト
 ====================== */
 .phone{
-  width:100%;        /* ✅ 画面いっぱい */
-  max-width:420px;   /* ✅ PCだけ制限 */
+  width:100%;
+  max-width:420px;
 
   margin:0 auto;
   padding:20px 16px 40px;
@@ -61,11 +81,10 @@ body{
 }
 
 /* ======================
-   タイトルキラキラ
+   キラキラ
 ====================== */
 .title-wrap{
   position:relative;
-  display:block;
   width:100%;
 }
 
@@ -82,7 +101,7 @@ body{
   );
 }
 
-/* ✅ 左右バランス（画面基準） */
+/* バランス配置 */
 .title-s1{ top:-20px; left:15%; }
 .title-s2{ top:30px; left:25%; }
 .title-s3{ top:-5px; right:15%; }
@@ -116,15 +135,9 @@ body{
   width:100%;
   height:100%;
   border-radius:50%;
-
-  background: radial-gradient(
-    circle,
-    #eef2ff 0%,
-    #d8e0f5 70%
-  );
+  background: radial-gradient(circle,#eef2ff,#d8e0f5);
 }
 
-/* ✅ バツ */
 .icon-hourglass{
   position:absolute;
   top:50%;
@@ -135,7 +148,7 @@ body{
 }
 
 /* ======================
-   カード内キラキラ
+   カードキラキラ
 ====================== */
 .sparkle-card{
   position:absolute;
@@ -150,6 +163,7 @@ body{
   );
 }
 
+/* 配置そのまま */
 .s1{ top:8px; left:-20px; }
 .s2{ top:15px; right:-25px; }
 .s3{ bottom:15px; left:-25px; }
@@ -170,29 +184,4 @@ body{
   text-align:center;
   font-size:13px;
   margin-top:8px;
-}
-
-/* ======================
-   ドット
-====================== */
-body::before,
-body::after{
-  content:"";
-  position:fixed;
-  width:120px;
-  height:120px;
-
-  background-image: radial-gradient(#bcc7e6 2px, transparent 2px);
-  background-size:12px 12px;
-  opacity:0.3;
-}
-
-body::before{
-  left:15px;
-  bottom:100px;
-}
-
-body::after{
-  right:15px;
-  bottom:80px;
 }
