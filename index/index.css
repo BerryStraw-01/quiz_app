@@ -115,13 +115,14 @@ html, body{
    カード
 ====================== */
 .card{
-  width:100%;
-  max-width:350px;      /* ✅ 375pxより一回り細い */
-  margin:14px auto;     /* ✅ 中央寄せ */
+  width:calc(100vw - 16px); /* ✅ 以前より太い（左右8px） */
+  max-width:390px;          /* ✅ 上限も少し拡張 */
+  margin:16px auto;
+
+  padding:22px;
+  border-radius:22px;
 
   background:white;
-  border-radius:22px;
-  padding:18px;         /* ✅ 中の余白も少し増やす */
   box-shadow:0 10px 24px rgba(0,0,0,.08);
 }
 
