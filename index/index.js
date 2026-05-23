@@ -29,6 +29,9 @@ let myChoice = null;
 let hasAnswered = false;
 let lastQuestionId = null;
 
+/* ✅ ランキング監視解除用 */
+let unsubscribeRanking = null;
+
 /* ======================
    画面切替
 ====================== */
@@ -90,7 +93,7 @@ function render(q, showAnswer){
     const div = document.createElement("div");
     let cls = "choice c" + i;
 
-    /* ===== 表示ロジック（確定） ===== */
+    /* 表示ロジック */
     if(showAnswer){
       if(i === q.answer){
         cls += " correct";
@@ -114,7 +117,7 @@ function render(q, showAnswer){
       }
     }
 
-    /* ===== 押せるか ===== */
+    /* 押せるか */
     const clickable =
       currentState.mode === "question" &&
       currentState.acceptingAnswers === true &&
@@ -166,6 +169,12 @@ onSnapshot(doc(db,"game","state"), async snap=>{
   if(!snap.exists()) return;
 
   currentState = snap.data();
+
+  /* ランキング以外に移動したら監視解除 */
+  if(currentState.mode !== "ranking" && unsubscribeRanking){
+    unsubscribeRanking();
+    unsubscribeRanking = null;
+  }
 
   if(!userId){
     show(currentState.mode === "join" ? "join" : "blocked");
@@ -219,64 +228,56 @@ onSnapshot(doc(db,"game","state"), async snap=>{
     const q = qSnap.data();
 
     if(aSnap.exists()){
-      const a = aSnap.data();
-      myChoice = a.choice;
+      myChoice = aSnap.data().choice;
       hasAnswered = true;
     }
 
-    /* ✅ ここが超重要 */
     lastQuestionId = currentState.questionId;
 
     render(q, true);
     await addScore();
 
     const resultBox = document.getElementById("answerResult");
-    if(resultBox){
-      resultBox.style.display = "block";
-
-      const resultText = document.getElementById("resultText");
-      const myAnswerEl = document.getElementById("myAnswer");
-      const correctAnswerEl = document.getElementById("correctAnswer");
-      const scoreEl = document.getElementById("score");
-
-      resultText.innerText =
-        myChoice === q.answer ? "正解！" : "不正解";
-      resultText.className =
-        "result-text " + (myChoice === q.answer ? "correct" : "wrong");
-
-      myAnswerEl.innerText = q.choices[myChoice] ?? "未回答";
-      correctAnswerEl.innerText = q.choices[q.answer];
-
-      const pSnap = await getDoc(doc(db,"players",userId));
-      scoreEl.innerText = pSnap.data()?.score || 0;
-    }
+    if(resultBox) resultBox.style.display = "block";
     return;
   }
 
+  /* ✅ ランキング（安定版） */
   if(currentState.mode === "ranking"){
     show("ranking");
 
-    const snapRank = await getDoc(doc(db,"ranking","current"));
-    if(!snapRank.exists()) return;
+    if(unsubscribeRanking) return;
 
-    let html = "";
+    unsubscribeRanking = onSnapshot(
+      doc(db,"ranking","current"),
+      snapRank=>{
+        const list = document.getElementById("rankList");
+        if(!list) return;
 
-    snapRank.data().top10.forEach((p, i) => {
-      const rankClass =
-        i === 0 ? "rank1" :
-        i === 1 ? "rank2" :
-        i === 2 ? "rank3" : "";
+        if(!snapRank.exists()){
+          list.innerHTML = "<div style='text-align:center;color:#888;'>集計中…</div>";
+          return;
+        }
 
-      html += `
-        <div class="rank-row ${rankClass}">
-          <div class="rank-num">${i + 1}位</div>
-          <div class="rank-name">${p.name}</div>
-          <div class="rank-score">${p.score}点</div>
-        </div>
-      `;
-    });
+        let html = "";
+        snapRank.data().top10.forEach((p,i)=>{
+          const rankClass =
+            i === 0 ? "rank1" :
+            i === 1 ? "rank2" :
+            i === 2 ? "rank3" : "";
 
-    document.getElementById("rankList").innerHTML = html;
+          html += `
+            <div class="rank-row ${rankClass}">
+              <div class="rank-num">${i+1}位</div>
+              <div class="rank-name">${p.name}</div>
+              <div class="rank-score">${p.score}点</div>
+            </div>
+          `;
+        });
+
+        list.innerHTML = html;
+      }
+    );
   }
 });
 

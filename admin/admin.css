@@ -430,3 +430,56 @@ body{
 .rank3 .rank{
   background:#ffcc80;
 }
+
+/* ======================
+   回答 ON / OFF トグル
+====================== */
+.answer-toggle{
+  width:44px;
+  height:44px;
+  border:none;
+  border-radius:50%;
+  background:#f5f5f5;
+  cursor:pointer;
+  position:relative;
+}
+
+/* 共通 */
+.answer-toggle svg{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:22px;
+  height:22px;
+  transform:translate(-50%,-50%);
+  fill:none;
+  stroke-width:3;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* ✅ ON：緑チェック */
+.answer-toggle.on{
+  background:#e9f8f0;
+}
+
+.answer-toggle.on .icon-check{
+  stroke:#2ecc71;
+}
+
+.answer-toggle.on .icon-cross{
+  display:none;
+}
+
+/* ❌ OFF：赤バツ */
+.answer-toggle.off{
+  background:#fdeeee;
+}
+
+.answer-toggle.off .icon-cross{
+  stroke:#e74c3c;
+}
+
+.answer-toggle.off .icon-check{
+  display:none;
+}
