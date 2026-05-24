@@ -11,12 +11,10 @@
 
 
 html, body{
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;            /* 画面外スクロール禁止 */
-  overscroll-behavior: none;   /* iOSゴムスクロール防止 */
+  margin:0;
+  padding:0;
+  width:100vw;
+  min-height:100vh;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 }
 
@@ -114,21 +112,18 @@ body{
 .phone{
   width: 100%;
   max-width: 390px;
-  height: 100vh;               /* ✅ 高さは viewport 基準 */
+  height: 100vh;
   margin: 0 auto;
-  padding: 40px 0;
-  box-sizing: border-box;      /* ✅ padding を高さに含める */
-  overflow-y: auto;            /* ✅ 中だけスクロール */
+
+  /* ✅ 上下の余白（下に safe-area を考慮） */
+  padding: 40px 0 calc(40px + env(safe-area-inset-bottom));
+
+  box-sizing: border-box;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   background: transparent;
 }
 
-
-/* ======================
-   以下：UI（今までのままでOK）
-====================== */
-/* card / pill / buttons / toggle / ranking などは
-   あなたが今書いているものをそのまま使ってOK */
 
 .title{
   text-align:center;
@@ -828,4 +823,19 @@ body{
   opacity: 0.4;
   pointer-events: none;
   filter: grayscale(0.6);
+}
+
+/* ======================
+   スクロールバー非表示（index と同じ）
+====================== */
+
+/* Chrome / Safari / Edge */
+.phone::-webkit-scrollbar{
+  display: none;
+}
+
+/* Firefox */
+.phone{
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE / Edge(旧) */
 }
