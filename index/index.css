@@ -586,12 +586,21 @@ body{
 
 /* 参加ボタン 押下アニメーション */
 #btnJoin{
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition:
+    box-shadow 0.12s ease,
+    filter 0.12s ease,
+    background-color 0.12s ease;
 }
 
 #btnJoin:active{
-  transform: scale(0.94);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.12) inset;
+  /* 縮小はしない */
+  transform: none;
+
+  /* 沈み込みで押下感を出す */
+  box-shadow: inset 0 6px 14px rgba(0,0,0,0.28);
+
+  /* 明るさで反応を分かりやすく */
+  filter: brightness(1.08);
 }
 
 /* ======================
@@ -601,12 +610,13 @@ body{
 /* 通常状態 */
 .choice{
   transition:
-    transform 0.12s ease,
-    box-shadow 0.12s ease;
+    box-shadow 0.12s ease,
+    filter 0.12s ease,
+    background-color 0.12s ease;
 }
 
-/* 押している間 */
+/* scale を完全に使わない */
 .choice:active{
-  transform: scale(0.94);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.18) inset;
+  box-shadow: inset 0 6px 14px rgba(0,0,0,0.28);
+  filter: brightness(1.08);
 }
