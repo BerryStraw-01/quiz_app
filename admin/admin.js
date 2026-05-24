@@ -104,6 +104,12 @@ function renderStatus(){
 ===================================================== */
 async function startAnswerListener(){
 
+
+  // ✅ 表示を即クリア（読み込み中）
+  document.getElementById("answerStatus").innerHTML =
+    "<div class='answer-info' style='color:#888;'>読み込み中…</div>"
+
+
   if(unsubscribeAnswers){
     unsubscribeAnswers();
     unsubscribeAnswers = null;
@@ -188,6 +194,12 @@ async function buildAndSaveRanking(){
 ===================================================== */
 async function showRanking(){
 
+
+  // ✅ まず読み込み表示
+  document.getElementById("answerStatus").innerHTML =
+    "<div class='answer-info' style='color:#888;'>ランキング集計中…</div>";
+
+
   if(unsubscribeAnswers){
     unsubscribeAnswers();
     unsubscribeAnswers = null;
@@ -270,6 +282,18 @@ function updateUI(s){
   setActive("btnQuestion", s.mode === "question"); // ✅ 修正
   setActive("btnAnswer", s.mode === "answer");
 
+
+  /* ✅ 追加：ランキングボタンの制御 */
+  const btnRanking = document.getElementById("btnRanking");
+  const disableRanking =
+    (s.mode === "question" || s.mode === "answer");
+
+
+  btnRanking.disabled = disableRanking;                 // ← HTML論理
+  btnRanking.classList.toggle("disabled", disableRanking); // ← UI用
+
+
+
   // ✅ 問題一覧に反映
   const answeredSet = new Set(s.answeredQuestionIds || []);
 
@@ -346,6 +370,12 @@ document.getElementById("btnAnswer").onclick = () => {
 
 // ✅ ランキング
 document.getElementById("btnRanking").onclick = async () => {
+
+  /* ✅ 出題中・解答中は何もしない */
+  if (state.mode === "question" || state.mode === "answer") {
+    return;
+  }
+
   await buildAndSaveRanking();
   updateState({ mode:"ranking" }, false);
 };

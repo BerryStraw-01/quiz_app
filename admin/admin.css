@@ -822,3 +822,10 @@ body{
   background: #e25555;
   color: white;
 }
+
+/* ✅ ランキングボタン専用 無効状態 */
+#btnRanking.disabled{
+  opacity: 0.4;
+  pointer-events: none;
+  filter: grayscale(0.6);
+}
