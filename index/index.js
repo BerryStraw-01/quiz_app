@@ -51,6 +51,12 @@ function show(id){
    参加
 ====================== */
 document.getElementById("btnJoin").onclick = async ()=>{
+
+
+  if ("vibrate" in navigator) {
+      navigator.vibrate(10);
+    }
+
   if(!currentState) return;
 
   const name = document.getElementById("name").value;
@@ -416,6 +422,13 @@ onSnapshot(stateRef, async (snap) => {
    回答
 ====================== */
 window.answer = async (i)=>{
+
+
+  // ✅ 押下時の触覚フィードバック
+  if ("vibrate" in navigator) {
+    navigator.vibrate(10);
+  }
+
   if(hasAnswered) return;
 
   hasAnswered = true;
