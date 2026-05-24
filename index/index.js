@@ -276,6 +276,12 @@ onSnapshot(stateRef, async (snap) => {
   if (s.mode === "question") {
     show("quiz");
 
+      /* ✅ 追加：選択肢を一度クリアして読み込み中表示 */
+      document.getElementById("choices").innerHTML =
+        "<div style='grid-column:1 / -1; text-align:center; color:#888;'>読み込み中…</div>";
+      document.getElementById("q").textContent = "";
+      document.getElementById("quizStatus").textContent = "";
+
     const qRef = doc(db, "questions", "q" + s.questionId);
     const aRef = doc(db, "answers", "q" + s.questionId, "users", userId);
 

@@ -192,44 +192,52 @@ async function buildAndSaveRanking(){
 /* =====================================================
    ランキング表示
 ===================================================== */
+// ✅ index 側：ランキング表示（即時反映）
 async function showRanking(){
 
-
-  // ✅ まず読み込み表示
   document.getElementById("answerStatus").innerHTML =
     "<div class='answer-info' style='color:#888;'>ランキング集計中…</div>";
-
 
   if(unsubscribeAnswers){
     unsubscribeAnswers();
     unsubscribeAnswers = null;
   }
 
-  const snap = await getDoc(doc(db,"ranking","current"));
-  if(!snap.exists()) return;
+  // ✅ ここを getDoc → onSnapshot に戻す
+  unsubscribeAnswers = onSnapshot(
+    doc(db,"ranking","current"),
+    snap => {
 
-  const r = snap.data();
-  if(r.eventId !== state.eventId) return;
+      if(!snap.exists()){
+        document.getElementById("answerStatus").innerHTML =
+          "<div class='answer-info' style='color:#888;'>ランキング集計中…</div>";
+        return;
+      }
 
-  let html = `<div class="ranking-list">`;
+      const r = snap.data();
+      if(r.eventId !== state.eventId) return;
 
-  r.top10.forEach((p,i)=>{
-    let cls = "ranking-row";
-    if(i===0) cls+=" rank1";
-    else if(i===1) cls+=" rank2";
-    else if(i===2) cls+=" rank3";
+      let html = `<div class="ranking-list">`;
 
-    html += `
-      <div class="${cls}">
-        <div class="rank">${i+1}</div>
-        <div class="rank-name">${p.name}</div>
-        <div class="rank-score">${p.score}点</div>
-      </div>
-    `;
-  });
+      r.top10.forEach((p,i)=>{
+        let cls = "ranking-row";
+        if(i===0) cls+=" rank1";
+        else if(i===1) cls+=" rank2";
+        else if(i===2) cls+=" rank3";
 
-  html += "</div>";
-  document.getElementById("answerStatus").innerHTML = html;
+        html += `
+          <div class="${cls}">
+            <div class="rank">${i+1}</div>
+            <div class="rank-name">${p.name}</div>
+            <div class="rank-score">${p.score}点</div>
+          </div>
+        `;
+      });
+
+      html += "</div>";
+      document.getElementById("answerStatus").innerHTML = html;
+    }
+  );
 }
 
 /* =====================================================
@@ -286,7 +294,7 @@ function updateUI(s){
   /* ✅ 追加：ランキングボタンの制御 */
   const btnRanking = document.getElementById("btnRanking");
   const disableRanking =
-    (s.mode === "question" || s.mode === "answer");
+    (s.mode === "question");
 
 
   btnRanking.disabled = disableRanking;                 // ← HTML論理
@@ -372,7 +380,7 @@ document.getElementById("btnAnswer").onclick = () => {
 document.getElementById("btnRanking").onclick = async () => {
 
   /* ✅ 出題中・解答中は何もしない */
-  if (state.mode === "question" || state.mode === "answer") {
+  if (state.mode === "question") {
     return;
   }
 
