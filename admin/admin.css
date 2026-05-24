@@ -1,21 +1,123 @@
 /* ======================
    共通
 ====================== */
-*{ box-sizing:border-box; }
+*{
+  box-sizing:border-box;
+}
 
-body{
+/* ======================
+   ベース
+====================== */
+html, body{
   margin:0;
-  background:radial-gradient(circle at top,#eef3ff,#dfe8ff);
-  display:flex;
-  justify-content:center;
+  padding:0;
+  width:100%;
+  min-height:100vh;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 }
 
-.phone{
-  width:375px;
-  padding:20px 0;
-  overflow:visible;
+/* ✅ body は flex にしない（index と同じ） */
+body{
+  position:relative;
+  overflow-x:hidden;
 }
+
+/* ======================
+   背景（index と完全一致）
+====================== */
+.bg{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  overflow:hidden;
+
+  background:
+    radial-gradient(circle at 0% 0%, rgba(180,200,255,0.35), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(180,200,255,0.35), transparent 40%),
+    linear-gradient(180deg,#f7f9ff,#e5ebf5);
+}
+
+/* ✅ 青い縁の円（index と同じ） */
+/* ======================
+   背景：内側も塗られた青い円
+====================== */
+
+/* 共通 */
+.bg::before,
+.bg::after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+}
+
+/* 左上の大きな円（塗り） */
+/* 左上の大きな円 */
+.bg::before{
+  width:420px;
+  height:420px;
+  top:-160px;
+  left:-180px;
+
+  background:rgba(92,108,255,0.12); /* 薄い青 */
+}
+
+/* 右下の円 */
+.bg::after{
+  width:320px;
+  height:320px;
+  bottom:-140px;
+  right:-160px;
+
+  background:rgba(92,108,255,0.10);
+}
+
+/* ======================
+   背景キラキラ（index と同じ）
+====================== */
+.bg-sparkle{
+  position:absolute;
+  width:16px;
+  height:16px;
+  background:#b7c6f0;
+  opacity:0.45;
+  clip-path:polygon(
+    50% 0%,60% 35%,100% 35%,
+    65% 55%,80% 100%,50% 75%,
+    20% 100%,35% 55%,0% 35%,40% 35%
+  );
+  animation:bg-sparkle-strong 4s ease-in-out infinite;
+}
+
+.bg-sparkle.s1{ top:6%;  left:10%; animation-delay:0s; }
+.bg-sparkle.s2{ top:18%; left:82%; animation-delay:0.8s; }
+.bg-sparkle.s3{ top:42%; left:20%; animation-delay:1.6s; }
+.bg-sparkle.s4{ top:65%; left:78%; animation-delay:2.4s; }
+.bg-sparkle.s5{ top:78%; left:35%; animation-delay:3.2s; }
+
+@keyframes bg-sparkle-strong{
+  0%{ opacity:0.25; transform:scale(0.7); }
+  50%{ opacity:0.9;  transform:scale(1.6); }
+  100%{ opacity:0.25; transform:scale(0.7); }
+}
+
+/* ======================
+   レイアウト（index と同じ）
+====================== */
+.phone{
+  width:100%;
+  max-width:390px;
+  min-height:100vh;
+  margin:0 auto;
+  padding:40px 0;
+  background:transparent;
+}
+
+/* ======================
+   以下：UI（今までのままでOK）
+====================== */
+/* card / pill / buttons / toggle / ranking などは
+   あなたが今書いているものをそのまま使ってOK */
 
 .title{
   text-align:center;
@@ -306,7 +408,7 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:8px;
+  gap:10px;
 }
 
 .reset svg{
@@ -502,3 +604,118 @@ body{
 .toggle-card.off .icon-check{
   display:none;
 }
+
+/* クイズを新しく始める：＋アイコン */
+.icon-plus{
+  width:24px;         /* ← さらに少し大きく */
+  height:24px;
+  stroke:white;
+  fill:none;
+  stroke-width: 3.4 !important;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.reset-icon{
+  display: flex;
+  align-items: center;
+}
+
+/* ======================
+   管理画面：ボタン押下アニメーション
+====================== */
+
+/* 対象ボタンすべて */
+#btnJoin,
+#btnWait,
+#btnRanking,
+#btnAnswer,
+.reset{
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+/* 押している間 */
+#btnJoin:active,
+#btnWait:active,
+#btnRanking:active,
+#btnAnswer:active,
+.reset:active{
+  transform: scale(0.94);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12) inset;
+}
+
+/* ======================
+   問題選択カード：押下アニメーション
+====================== */
+
+.q-card{
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+/* 押している間 */
+.q-card:active{
+  transform: scale(0.96); /* ← 他より少し弱めがおすすめ */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12) inset;
+}
+
+/* ======================
+   背景（index と完全共通）
+====================== */
+.bg{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  overflow:hidden;
+
+  background:
+    radial-gradient(circle at 0% 0%, rgba(180,200,255,0.35), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(180,200,255,0.35), transparent 40%),
+    linear-gradient(180deg,#f7f9ff,#e5ebf5);
+}
+
+/* 背景キラキラ */
+.bg-sparkle{
+  position:absolute;
+  width:16px;
+  height:16px;
+  background:#b7c6f0;
+  opacity:0.45;
+  clip-path:polygon(
+    50% 0%,60% 35%,100% 35%,
+    65% 55%,80% 100%,50% 75%,
+    20% 100%,35% 55%,0% 35%,40% 35%
+  );
+
+  animation: bg-sparkle-strong 4s ease-in-out infinite;
+  filter:
+    drop-shadow(0 0 6px rgba(138,168,255,0.6))
+    drop-shadow(0 0 14px rgba(138,168,255,0.5));
+}
+
+/* 位置 */
+.bg-sparkle.s1{ top:6%;  left:10%; animation-delay:0s; }
+.bg-sparkle.s2{ top:18%; left:82%; animation-delay:0.8s; }
+.bg-sparkle.s3{ top:42%; left:20%; animation-delay:1.6s; }
+.bg-sparkle.s4{ top:65%; left:78%; animation-delay:2.4s; }
+.bg-sparkle.s5{ top:78%; left:35%; animation-delay:3.2s; }
+.bg-sparkle.s6{ top:12%; left:48%; animation-delay:0.3s; }
+.bg-sparkle.s7{ top:28%; left:6%;  animation-delay:1.1s; }
+.bg-sparkle.s8{ top:34%; left:90%; animation-delay:2.6s; }
+.bg-sparkle.s9{ top:52%; left:30%; animation-delay:1.8s; }
+.bg-sparkle.s10{ top:60%; left:64%; animation-delay:3.3s; }
+
+@keyframes bg-sparkle-strong{
+  0%{
+    opacity:0.25;
+    transform:scale(0.7) rotate(0deg);
+  }
+  50%{
+    opacity:0.9;
+    transform:scale(1.6) rotate(12deg);
+  }
+  100%{
+    opacity:0.25;
+    transform:scale(0.7) rotate(0deg);
+  }
+}
+

@@ -6,7 +6,8 @@ import {
   doc,
   getDoc,
   setDoc,
-  onSnapshot
+  onSnapshot,
+  runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 /* ======================
@@ -36,7 +37,7 @@ let unsubscribeRanking = null;
    画面切替
 ====================== */
 function show(id){
-  ["join","wait","quiz","blocked","ranking"].forEach(x=>{
+  ["loading","join","wait","quiz","blocked","ranking"].forEach(x=>{
     const el = document.getElementById(x);
     if(el) el.style.display = "none";
   });
@@ -163,49 +164,70 @@ function render(q, showAnswer){
   const status = document.getElementById("quizStatus");
   status.textContent = currentState.acceptingAnswers
     ? "回答受付中"
-    : "回答受付終了";
+    : "回答受付していません";
 }
-``
 
 /* ======================
    得点加算
 ====================== */
 async function addScore(){
-  const aRef = doc(db,"answers","q"+currentState.questionId,"users",userId);
-  const aSnap = await getDoc(aRef);
-  if(!aSnap.exists()) return;
+  const qid = currentState.questionId;
 
-  const a = aSnap.data();
-  if(!a.scored || a.scoreAdded) return;
+  const aRef = doc(db, "answers", "q" + qid, "users", userId);
+  const pRef = doc(db, "players", userId);
 
-  const pRef = doc(db,"players",userId);
-  const pSnap = await getDoc(pRef);
-  const current = pSnap.data()?.score || 0;
+  await runTransaction(db, async (tx) => {
 
-  await setDoc(pRef,{ score: current + 1 },{ merge:true });
-  await setDoc(aRef,{ scoreAdded:true },{ merge:true });
+    // 自分の回答を取得
+    const aSnap = await tx.get(aRef);
+    if(!aSnap.exists()) return;
+
+    const a = aSnap.data();
+
+    // ✅ 正解でない / すでに加算済み → 何もしない
+    if(!a.scored || a.scoreAdded) return;
+
+    // 現在のスコア取得
+    const pSnap = await tx.get(pRef);
+    const currentScore = pSnap.data()?.score || 0;
+
+    // ✅ 得点を1加算
+    tx.update(pRef, { score: currentScore + 1 });
+
+    // ✅ 二重加算防止フラグ
+    tx.update(aRef, { scoreAdded: true });
+  });
 }
 
 /* ======================
    状態監視
 ====================== */
-onSnapshot(doc(db,"game","state"), async snap=>{
-  if(!snap.exists()) return;
+const stateRef = doc(db, "game", "state");
 
-  currentState = snap.data();
+onSnapshot(stateRef, async (snap) => {
 
-  /* ランキング以外に移動したら監視解除 */
-  if(currentState.mode !== "ranking" && unsubscribeRanking){
-    unsubscribeRanking();
-    unsubscribeRanking = null;
-  }
-
-  if(!userId){
-    show(currentState.mode === "join" ? "join" : "blocked");
+  /* ======================
+     state が無ければ初期化
+  ====================== */
+  if (!snap.exists()) {
+    await setDoc(stateRef, {
+      mode: "waiting",
+      questionId: null,
+      acceptingAnswers: false,
+      eventId: Date.now().toString()
+    });
     return;
   }
 
-  if(savedEventId !== currentState.eventId){
+  /* ======================
+     state 取得（ここで loading 終了）
+  ====================== */
+  currentState = snap.data();
+
+  /* ======================
+     イベント不一致チェック
+  ====================== */
+  if (savedEventId && savedEventId !== currentState.eventId) {
     localStorage.clear();
     userId = null;
     savedEventId = null;
@@ -213,134 +235,143 @@ onSnapshot(doc(db,"game","state"), async snap=>{
     return;
   }
 
-  if(currentState.mode === "waiting"){
+  /* ======================
+     未参加ユーザー
+  ====================== */
+  if (!userId) {
+    show(currentState.mode === "join" ? "join" : "blocked");
+    return;
+  }
+
+  /* ======================
+     ranking 監視解除
+  ====================== */
+  if (currentState.mode !== "ranking" && unsubscribeRanking) {
+    unsubscribeRanking();
+    unsubscribeRanking = null;
+  }
+
+  /* ======================
+     待機
+  ====================== */
+  if (currentState.mode === "waiting") {
     show("wait");
     return;
   }
 
-  if(currentState.mode === "question"){
+  /* ======================
+     問題表示
+  ====================== */
+  if (currentState.mode === "question") {
     show("quiz");
 
-    // 問題データ取得
-    const qSnap = await getDoc(
-      doc(db, "questions", "q" + currentState.questionId)
-    );
-    if(!qSnap.exists()) return;
-    const q = qSnap.data();
-
-    /* ✅ 新しい問題のときだけ状態をリセット */
-    if(currentState.questionId !== lastQuestionId){
-      myChoice = null;
-      hasAnswered = false;
-      lastQuestionId = currentState.questionId;
-    }
-
-    /* ✅ 結果表示は必ず非表示に戻す */
-    const resultBox = document.getElementById("answerResult");
-    if(resultBox){
-      resultBox.style.display = "none";
-
-      // 中身も一度リセット（ゴースト防止）
-      const resultText = document.getElementById("resultText");
-      const myAnswerEl = document.getElementById("myAnswer");
-      const correctAnswerEl = document.getElementById("correctAnswer");
-      const scoreEl = document.getElementById("score");
-
-      if(resultText) resultText.textContent = "";
-      if(myAnswerEl) myAnswerEl.textContent = "";
-      if(correctAnswerEl) correctAnswerEl.textContent = "";
-      if(scoreEl) scoreEl.textContent = "";
-    }
-
-    /* ✅ 問題表示（解答前） */
-    render(q, false);
-    return;
-  }
-
-  if(currentState.mode === "answer"){
-    show("quiz");
-
-    const qRef = doc(db,"questions","q"+currentState.questionId);
-    const aRef = doc(db,"answers","q"+currentState.questionId,"users",userId);
+    const qRef = doc(db, "questions", "q" + currentState.questionId);
+    const aRef = doc(db, "answers", "q" + currentState.questionId, "users", userId);
 
     const [qSnap, aSnap] = await Promise.all([
       getDoc(qRef),
       getDoc(aRef)
     ]);
 
-    if(!qSnap.exists()) return;
+    if (!qSnap.exists()) return;
     const q = qSnap.data();
 
-    // 自分の回答を復元
-    if(aSnap.exists()){
+    // 新しい問題なら初期化
+    if (currentState.questionId !== lastQuestionId) {
+      myChoice = null;
+      hasAnswered = false;
+      lastQuestionId = currentState.questionId;
+    }
+
+    // 回答済みなら復元
+    if (aSnap.exists() && aSnap.data().eventId === currentState.eventId) {
       myChoice = aSnap.data().choice;
       hasAnswered = true;
-    }else{
+    }
+
+    // 結果UIを隠す
+    const resultBox = document.getElementById("answerResult");
+    if (resultBox) resultBox.style.display = "none";
+
+    render(q, false);
+    return;
+  }
+
+  /* ======================
+     回答結果
+  ====================== */
+  if (currentState.mode === "answer") {
+    show("quiz");
+
+    const qRef = doc(db, "questions", "q" + currentState.questionId);
+    const aRef = doc(db, "answers", "q" + currentState.questionId, "users", userId);
+
+    const [qSnap, aSnap] = await Promise.all([
+      getDoc(qRef),
+      getDoc(aRef)
+    ]);
+
+    if (!qSnap.exists()) return;
+    const q = qSnap.data();
+
+    if (aSnap.exists()) {
+      myChoice = aSnap.data().choice;
+      hasAnswered = true;
+    } else {
       myChoice = null;
       hasAnswered = false;
     }
 
     lastQuestionId = currentState.questionId;
 
-    // 選択肢表示（正解ハイライト）
     render(q, true);
 
-    // スコア加算（1回だけ）
+    // ✅ 得点加算（安全版）
     await addScore();
 
-    /* ✅ 結果UIに中身を書き込む（ここが今まで無かった） */
     const resultBox = document.getElementById("answerResult");
-    if(resultBox){
+    if (resultBox) {
       resultBox.style.display = "block";
 
+      const correct = myChoice === q.answer;
       const resultText = document.getElementById("resultText");
-      const myAnswerEl = document.getElementById("myAnswer");
-      const correctAnswerEl = document.getElementById("correctAnswer");
-      const scoreEl = document.getElementById("score");
+      resultText.textContent = correct ? "正解！" : "不正解";
+      resultText.className = "result-text " + (correct ? "correct" : "wrong");
 
-      // 正解 / 不正解
-      if(myChoice === q.answer){
-        resultText.textContent = "正解！";
-        resultText.className = "result-text correct";
-      }else{
-        resultText.textContent = "不正解";
-        resultText.className = "result-text wrong";
-      }
-
-      // あなたの解答
-      myAnswerEl.textContent =
+      document.getElementById("myAnswer").textContent =
         myChoice !== null ? q.choices[myChoice] : "未回答";
+      document.getElementById("correctAnswer").textContent =
+        q.choices[q.answer];
 
-      // 正解
-      correctAnswerEl.textContent = q.choices[q.answer];
-
-      // スコア
-      const pSnap = await getDoc(doc(db,"players",userId));
-      scoreEl.textContent = pSnap.data()?.score ?? 0;
+      const pSnap = await getDoc(doc(db, "players", userId));
+      document.getElementById("score").textContent =
+        pSnap.data()?.score ?? 0;
     }
 
     return;
   }
 
-  /* ✅ ランキング（安定版） */
-  if(currentState.mode === "ranking"){
+  /* ======================
+     ランキング
+  ====================== */
+  if (currentState.mode === "ranking") {
     show("ranking");
 
-    if(unsubscribeRanking) return;
+    if (unsubscribeRanking) return;
 
     unsubscribeRanking = onSnapshot(
-      doc(db,"ranking","current"),
-      snapRank=>{
+      doc(db, "ranking", "current"),
+      snapRank => {
         const list = document.getElementById("rankList");
-        if(!list) return;
+        if (!list) return;
 
-        if(!snapRank.exists()){
+        if (!snapRank.exists()) {
           list.innerHTML = "<div style='text-align:center;color:#888;'>集計中…</div>";
           return;
         }
 
         let html = "";
-        snapRank.data().top10.forEach((p,i)=>{
+        snapRank.data().top10.forEach((p, i) => {
           const rankClass =
             i === 0 ? "rank1" :
             i === 1 ? "rank2" :
@@ -348,7 +379,7 @@ onSnapshot(doc(db,"game","state"), async snap=>{
 
           html += `
             <div class="rank-row ${rankClass}">
-              <div class="rank-num">${i+1}位</div>
+              <div class="rank-num">${i + 1}位</div>
               <div class="rank-name">${p.name}</div>
               <div class="rank-score">${p.score}点</div>
             </div>
@@ -358,7 +389,13 @@ onSnapshot(doc(db,"game","state"), async snap=>{
         list.innerHTML = html;
       }
     );
+    return;
   }
+
+  /* ======================
+     想定外の mode
+  ====================== */
+  show("wait");
 });
 
 /* ======================
@@ -381,7 +418,13 @@ window.answer = async (i)=>{
       choice: i,
       eventId: currentState.eventId,
       answered: true,
+
+      // ✅ 正解かどうか
       scored: (i === qSnap.data().answer),
+
+      // ✅ 初期状態では必ず false
+      scoreAdded: false,
+
       answeredAt: Date.now()
     },
     { merge:true }

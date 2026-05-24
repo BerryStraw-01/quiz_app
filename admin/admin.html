@@ -8,6 +8,28 @@
 </head>
 
 <body>
+<body>
+
+<!-- ✅ index と同じ背景レイヤー -->
+<div class="bg">
+    <div class="bg-sparkle s1"></div>
+    <div class="bg-sparkle s2"></div>
+    <div class="bg-sparkle s3"></div>
+    <div class="bg-sparkle s4"></div>
+    <div class="bg-sparkle s5"></div>
+    <div class="bg-sparkle s6"></div>
+    <div class="bg-sparkle s7"></div>
+    <div class="bg-sparkle s8"></div>
+    <div class="bg-sparkle s9"></div>
+    <div class="bg-sparkle s10"></div>
+</div>
+
+<!-- 管理画面本体 -->
+<div class="phone">
+    <!-- 既存の admin UI -->
+</div>
+
+</body>
 <div class="phone">
 
     <h1 class="title">管理画面</h1>
@@ -15,13 +37,13 @@
     <!-- 参加人数 -->
     <div class="pill-center">
         <div id="playerCount" class="pill-text">
-      <span class="pill-icon">
-        <svg viewBox="0 0 24 24">
-          <circle cx="12" cy="7" r="3"/>
-          <path d="M6 18c0-3 3-5 6-5s6 2 6 5"/>
-        </svg>
-      </span>
-            参加人数：0人
+  <span class="pill-icon">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="7" r="3"/>
+      <path d="M6 18c0-3 3-5 6-5s6 2 6 5"/>
+    </svg>
+  </span>
+            <span id="playerCountText">参加人数：0人</span>
         </div>
     </div>
 
@@ -156,14 +178,14 @@
     </div>
 
     <!-- 初期化 -->
-    <button class="reset">
-    <span class="reset-icon">
-      <svg viewBox="0 0 24 24">
-        <path d="M4 12a8 8 0 1 1 5.5 7.5"/>
-        <polyline points="4 5 4 11 10 11"/>
-      </svg>
-    </span>
-        初期化（リセット）
+    <button class="reset" id="btnNewQuiz">
+      <span class="reset-icon">
+        <svg viewBox="0 0 24 24" class="icon-plus">
+          <line x1="12" y1="4" x2="12" y2="20" />
+          <line x1="4" y1="12" x2="20" y2="12" />
+        </svg>
+      </span>
+        クイズを新しく始める
     </button>
 
 </div>
