@@ -33,6 +33,8 @@ let lastQuestionId = null;
 /* ✅ ランキング監視解除用 */
 let unsubscribeRanking = null;
 
+let lastAccepting = null;
+
 /* ======================
    画面切替
 ====================== */
@@ -200,7 +202,7 @@ async function addScore(){
 }
 
 /* ======================
-   状態監視
+   状態監視p.data()
 ====================== */
 const stateRef = doc(db, "game", "state");
 
@@ -222,7 +224,19 @@ onSnapshot(stateRef, async (snap) => {
   /* ======================
      state 取得（ここで loading 終了）
   ====================== */
-  currentState = snap.data();
+  const s = snap.data();
+  currentState = s;
+
+  // ✅ 解答ON/OFFだけは最優先で反映
+  if (lastAccepting !== null && lastAccepting !== s.acceptingAnswers) {
+    const status = document.getElementById("quizStatus");
+    if (status) {
+      status.textContent = s.acceptingAnswers
+        ? "回答受付中"
+        : "回答受付していません";
+    }
+  }
+  lastAccepting = s.acceptingAnswers;
 
   /* ======================
      イベント不一致チェック

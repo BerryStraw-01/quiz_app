@@ -30,6 +30,8 @@ let state = {
   eventId: null
 };
 
+const answeredQuestions = new Set();
+
 let currentTab = "q";
 let unsubscribeAnswers = null;
 let playerCount = 0;
@@ -235,16 +237,25 @@ async function loadQuestions(){
 
   document.querySelectorAll(".q-card").forEach(card=>{
     card.onclick = async ()=>{
+      if(card.classList.contains("answered")) return;
+
       const qid = Number(card.dataset.id);
       await updateState({
         mode:"question",
         questionId:qid,
         acceptingAnswers:false
       }, false);
-      document.querySelectorAll(".q-card").forEach(c=>c.classList.remove("active"));
+
+      document.querySelectorAll(".q-card")
+        .forEach(c=>c.classList.remove("active"));
       card.classList.add("active");
     };
   });
+
+  // ✅ ★ 追加：state が既にあれば、UI を再反映
+  if(state){
+    updateUI(state);
+  }
 }
 
 /* =====================================================
@@ -258,6 +269,14 @@ function updateUI(s){
   setActive("btnRanking", s.mode === "ranking");
   setActive("btnQuestion", s.mode === "question"); // ✅ 修正
   setActive("btnAnswer", s.mode === "answer");
+
+  // ✅ 問題一覧に反映
+  const answeredSet = new Set(s.answeredQuestionIds || []);
+
+  document.querySelectorAll(".q-card").forEach(card => {
+    const qid = Number(card.dataset.id);
+    card.classList.toggle("answered", answeredSet.has(qid));
+  });
 
   // 待機 / 参加受付なら問題選択の active を解除
   if(s.mode === "waiting" || s.mode === "join"){
@@ -313,7 +332,16 @@ document.getElementById("btnWait").onclick = () => {
 
 // ✅ 解答
 document.getElementById("btnAnswer").onclick = () => {
-  updateState({ mode:"answer", acceptingAnswers:false }, false);
+  const updated = new Set(state.answeredQuestionIds || []);
+  if(state.questionId !== null){
+    updated.add(state.questionId);
+  }
+
+  updateState({
+    mode:"answer",
+    acceptingAnswers:false,
+    answeredQuestionIds: Array.from(updated)
+  }, false);
 };
 
 // ✅ ランキング
@@ -323,9 +351,8 @@ document.getElementById("btnRanking").onclick = async () => {
 };
 
 // ✅ 回答ON/OFF
-document.getElementById("btnToggle").onclick = async () => {
-  const snap = await getDoc(doc(db,"game","state"));
-  updateState({ acceptingAnswers: !snap.data().acceptingAnswers }, false);
+document.getElementById("btnToggle").onclick = () => {
+  updateState({ acceptingAnswers: !state.acceptingAnswers }, false);
 };
 
 // ✅ クイズを新しく始める（ここだけ eventId 更新）
@@ -333,7 +360,8 @@ document.querySelector(".reset").onclick = () => {
   updateState({
     mode:"waiting",
     questionId:null,
-    acceptingAnswers:false
+    acceptingAnswers:false,
+    answeredQuestionIds: []   // ✅ ここ
   }, true);
 };
 

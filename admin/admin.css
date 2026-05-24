@@ -719,3 +719,27 @@ body{
   }
 }
 
+/* 回答済みの問題は操作不可 */
+.q-card.answered{
+  opacity: 0.45;
+  pointer-events: none;   /* ✅ マウス/タップを完全にブロック */
+  cursor: not-allowed;
+}
+
+.q-card.answered::after{
+  content: "回答済み";
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  font-size: 11px;
+  color: #5c6cff;
+  background: rgba(92,108,255,0.12);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.q-card.answered{
+  opacity: 0.45;
+  pointer-events: none;   /* ✅ DOMレベルで無効 */
+  cursor: not-allowed;
+}
