@@ -594,3 +594,19 @@ body{
   box-shadow: 0 4px 10px rgba(0,0,0,0.12) inset;
 }
 
+/* ======================
+   選択肢 押下アニメーション
+====================== */
+
+/* 通常状態 */
+.choice{
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+/* 押している間 */
+.choice:active{
+  transform: scale(0.94);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.18) inset;
+}
