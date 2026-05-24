@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>管理画面</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <link rel="stylesheet" href="admin.css">
 </head>
 
-<body>
 <body>
 
 <!-- ✅ index と同じ背景レイヤー -->
@@ -25,11 +24,6 @@
 </div>
 
 <!-- 管理画面本体 -->
-<div class="phone">
-    <!-- 既存の admin UI -->
-</div>
-
-</body>
 <div class="phone">
 
     <h1 class="title">管理画面</h1>
@@ -188,6 +182,29 @@
         クイズを新しく始める
     </button>
 
+</div>
+
+<!-- ======================
+     新しいクイズ確認モーダル
+====================== -->
+<div id="newQuizModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card">
+        <div class="modal-title">クイズを新しく始めますか？</div>
+
+        <div class="modal-text">
+            現在の進行状況はすべてリセットされます。<br>
+            参加者は再度参加が必要になります。
+        </div>
+
+        <div class="modal-actions">
+            <button id="cancelNewQuiz" class="modal-btn cancel">
+                キャンセル
+            </button>
+            <button id="confirmNewQuiz" class="modal-btn danger">
+                新しく始める
+            </button>
+        </div>
+    </div>
 </div>
 
 <script type="module" src="admin.js"></script>

@@ -356,24 +356,54 @@ document.getElementById("btnToggle").onclick = () => {
 };
 
 // ✅ クイズを新しく始める（ここだけ eventId 更新）
+const modal = document.getElementById("newQuizModal");
+const btnCancel = document.getElementById("cancelNewQuiz");
+const btnConfirm = document.getElementById("confirmNewQuiz");
+
+// 「クイズを新しく始める」ボタン
 document.querySelector(".reset").onclick = () => {
+  modal.style.display = "flex";
+};
+
+// キャンセル
+btnCancel.onclick = () => {
+  modal.style.display = "none";
+};
+
+// 実行
+btnConfirm.onclick = () => {
+  modal.style.display = "none";
+
   updateState({
-    mode:"waiting",
-    questionId:null,
-    acceptingAnswers:false,
-    answeredQuestionIds: []   // ✅ ここ
+    mode: "waiting",
+    questionId: null,
+    acceptingAnswers: false,
+    answeredQuestionIds: []
   }, true);
+};
+
+modal.onclick = (e) => {
+  if(e.target === modal){
+    modal.style.display = "none";
+  }
 };
 
 /* =====================================================
    state監視
 ===================================================== */
-onSnapshot(doc(db,"game","state"), snap=>{
+onSnapshot(doc(db,"game","state"), snap => {
   if(!snap.exists()) return;
-  updateUI(snap.data());
-  if(currentTab === "status"){
-    renderStatus();
+
+  const newState = snap.data();
+
+  // ✅ eventId が変わったら人数リセット
+  if (state.eventId && state.eventId !== newState.eventId) {
+    playerCount = 0;
+    document.getElementById("playerCountText").textContent =
+      "参加人数：0人";
   }
+
+  updateUI(newState);
 });
 
 /* =====================================================

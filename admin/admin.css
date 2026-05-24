@@ -8,13 +8,18 @@
 /* ======================
    ベース
 ====================== */
+
+
 html, body{
-  margin:0;
-  padding:0;
-  width:100%;
-  min-height:100vh;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;            /* 画面外スクロール禁止 */
+  overscroll-behavior: none;   /* iOSゴムスクロール防止 */
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 }
+
 
 /* ✅ body は flex にしない（index と同じ） */
 body{
@@ -104,14 +109,20 @@ body{
 /* ======================
    レイアウト（index と同じ）
 ====================== */
+
+
 .phone{
-  width:100%;
-  max-width:390px;
-  min-height:100vh;
-  margin:0 auto;
-  padding:40px 0;
-  background:transparent;
+  width: 100%;
+  max-width: 390px;
+  height: 100vh;               /* ✅ 高さは viewport 基準 */
+  margin: 0 auto;
+  padding: 40px 0;
+  box-sizing: border-box;      /* ✅ padding を高さに含める */
+  overflow-y: auto;            /* ✅ 中だけスクロール */
+  -webkit-overflow-scrolling: touch;
+  background: transparent;
 }
+
 
 /* ======================
    以下：UI（今までのままでOK）
@@ -742,4 +753,72 @@ body{
   opacity: 0.45;
   pointer-events: none;   /* ✅ DOMレベルで無効 */
   cursor: not-allowed;
+}
+
+/* ======================
+   モーダル（共通）
+====================== */
+.modal-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* カード本体 */
+.modal-card{
+  width: calc(100vw - 32px);
+  max-width: 360px;
+  background: white;
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  text-align: center;
+}
+
+/* タイトル */
+.modal-title{
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+/* 説明文 */
+.modal-text{
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* ボタン行 */
+.modal-actions{
+  display: flex;
+  gap: 12px;
+}
+
+/* 共通ボタン */
+.modal-btn{
+  flex: 1;
+  height: 42px;
+  border-radius: 12px;
+  border: none;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* キャンセル */
+.modal-btn.cancel{
+  background: #eee;
+  color: #555;
+}
+
+/* 危険操作 */
+.modal-btn.danger{
+  background: #e25555;
+  color: white;
 }
