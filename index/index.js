@@ -83,7 +83,7 @@ function render(q, showAnswer){
   qEl.textContent = q.text ?? "";
 
   /* ======================
-     画像（確実に表示 / 非表示）
+     画像
   ====================== */
   const img = document.getElementById("qImg");
   if(img){
@@ -93,7 +93,6 @@ function render(q, showAnswer){
       };
 
       img.onerror = () => {
-        // ✅ 読み込み失敗時は完全に隠す
         img.style.display = "none";
         img.src = "";
       };
@@ -106,13 +105,25 @@ function render(q, showAnswer){
   }
 
   /* ======================
-     選択肢
+     選択肢コンテナ
   ====================== */
   const choicesEl = document.getElementById("choices");
   choicesEl.innerHTML = "";
 
+  // ✅ 2択かどうかでクラス切り替え
+  if(q.choices.length === 2){
+    choicesEl.classList.add("two");
+    choicesEl.style.gridTemplateColumns = "1fr";        // ← 縦並び
+  }else{
+    choicesEl.classList.remove("two");
+    choicesEl.style.gridTemplateColumns = "1fr 1fr";    // ← 2×2
+  }
+
   const labels = ["①","②","③","④"];
 
+  /* ======================
+     選択肢生成
+  ====================== */
   q.choices.forEach((c,i)=>{
     const div = document.createElement("div");
     let cls = "choice c" + i;

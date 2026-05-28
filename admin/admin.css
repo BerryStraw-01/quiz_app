@@ -11,10 +11,12 @@
 
 
 html, body{
-  margin:0;
-  padding:0;
-  width:100vw;
-  min-height:100vh;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;          /* ✅ 画面を固定 */
+  overscroll-behavior: none; /* ✅ ゴムスクロール防止 */
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 }
 
@@ -112,14 +114,11 @@ body{
 .phone{
   width: 100%;
   max-width: 390px;
-  height: 100vh;
+  height: 100vh;               /* ✅ ビューポート基準 */
   margin: 0 auto;
-
-  /* ✅ 上下の余白（下に safe-area を考慮） */
-  padding: 40px 0 calc(40px + env(safe-area-inset-bottom));
-
-  box-sizing: border-box;
-  overflow-y: auto;
+  padding: 40px 0;
+  box-sizing: border-box;      /* ✅ padding を高さに含める */
+  overflow-y: auto;            /* ✅ ここだけスクロール */
   -webkit-overflow-scrolling: touch;
   background: transparent;
 }
