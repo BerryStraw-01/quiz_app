@@ -1,3 +1,5 @@
+console.log("ADMIN JS LOADED");
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getFirestore,
@@ -40,14 +42,24 @@ let playerCount = 0;
    ✅ state更新関数（核心）
 ===================================================== */
 function updateState(data, newEvent = false){
+
   const newState = {
+    ...state,
     ...data,
     eventId: newEvent
       ? crypto.randomUUID()
-      : state.eventId
+      : state.eventId,
+
+    updatedAt: Date.now()
   };
 
-  return setDoc(doc(db, "game", "state"), newState, { merge: true });
+  state = newState;
+
+  return setDoc(
+    doc(db, "game", "state"),
+    newState,
+    { merge: false }
+  );
 }
 
 /* =====================================================
@@ -104,36 +116,45 @@ function renderStatus(){
 ===================================================== */
 async function startAnswerListener(){
 
+  const currentQuestionId = state.questionId;
+  const currentEventId = state.eventId;
 
-  // ✅ 表示を即クリア（読み込み中）
   document.getElementById("answerStatus").innerHTML =
-    "<div class='answer-info' style='color:#888;'>読み込み中…</div>"
-
+    "<div class='answer-info' style='color:#888;'>読み込み中…</div>";
 
   if(unsubscribeAnswers){
     unsubscribeAnswers();
     unsubscribeAnswers = null;
   }
 
-  if(state.questionId === null){
+  if(currentQuestionId === null){
     document.getElementById("answerStatus").innerHTML =
       "<div class='answer-info'>問題が選択されていません</div>";
     return;
   }
 
-  const qSnap = await getDoc(doc(db, "questions", "q" + state.questionId));
+  const qSnap = await getDoc(doc(db, "questions", "q" + currentQuestionId));
+
+  // ✅ ここ超重要：古いawait結果を無視
+  if (state.questionId !== currentQuestionId) return;
+
   if(!qSnap.exists()) return;
   const q = qSnap.data();
 
-  const col = collection(db, "answers", "q" + state.questionId, "users");
+  const col = collection(db, "answers", "q" + currentQuestionId, "users");
 
   unsubscribeAnswers = onSnapshot(col, snap => {
+
+    // ✅ ここも重要
+    if (state.questionId !== currentQuestionId ||
+        state.eventId !== currentEventId) return;
+
     const count = Array(q.choices.length).fill(0);
     let answered = 0;
 
     snap.forEach(d => {
       const a = d.data();
-      if(a.eventId === state.eventId && typeof a.choice === "number"){
+      if(a.eventId === currentEventId && typeof a.choice === "number"){
         answered++;
         count[a.choice]++;
       }
@@ -171,29 +192,67 @@ async function startAnswerListener(){
    ランキング生成
 ===================================================== */
 async function buildAndSaveRanking(){
+
+  // 🔴 追加：必ず Firestore から最新 state を読む
+  const stateSnap = await getDoc(doc(db, "game", "state"));
+  if (!stateSnap.exists()) return;
+
+  const currentState = stateSnap.data();
+  const eventId = currentState.eventId;
+
   const snap = await getDocs(collection(db, "players"));
   const result = [];
 
   snap.forEach(docSnap => {
     const d = docSnap.data();
-    if(d.eventId !== state.eventId) return;
-    result.push({ name: d.name, score: d.score || 0 });
+    if (d.eventId !== eventId) return;
+
+    result.push({
+      name: d.name,
+      score: d.score || 0
+    });
   });
 
   result.sort((a,b)=> b.score - a.score);
 
+  let top = [];
+  let rank = 0;
+  let lastScore = null;
+
+  for(let i = 0; i < result.length; i++){
+    const p = result[i];
+
+    if(p.score !== lastScore){
+      rank = i + 1;
+      lastScore = p.score;
+    }
+
+    if(rank > 10) break;
+
+    top.push({
+      name: p.name,
+      score: p.score,
+      rank: rank
+    });
+  }
+
+  console.log("RANK SAVE:", top);
+
   await setDoc(doc(db,"ranking","current"),{
-    eventId: state.eventId,
+    eventId,
     updatedAt: serverTimestamp(),
-    top10: result.slice(0,10)
+    top10: top
   });
 }
+
 
 /* =====================================================
    ランキング表示
 ===================================================== */
 // ✅ index 側：ランキング表示（即時反映）
 async function showRanking(){
+
+  const currentEventId = state.eventId;
 
   document.getElementById("answerStatus").innerHTML =
     "<div class='answer-info' style='color:#888;'>ランキング集計中…</div>";
@@ -203,31 +262,29 @@ async function showRanking(){
     unsubscribeAnswers = null;
   }
 
-  // ✅ ここを getDoc → onSnapshot に戻す
   unsubscribeAnswers = onSnapshot(
     doc(db,"ranking","current"),
     snap => {
 
-      if(!snap.exists()){
-        document.getElementById("answerStatus").innerHTML =
-          "<div class='answer-info' style='color:#888;'>ランキング集計中…</div>";
-        return;
-      }
+      if(!snap.exists()) return;
 
       const r = snap.data();
-      if(r.eventId !== state.eventId) return;
+
+      // ✅ 古いデータブロック
+      if(r.eventId !== currentEventId) return;
 
       let html = `<div class="ranking-list">`;
 
       r.top10.forEach((p,i)=>{
         let cls = "ranking-row";
-        if(i===0) cls+=" rank1";
-        else if(i===1) cls+=" rank2";
-        else if(i===2) cls+=" rank3";
+
+        if(p.rank === 1) cls += " rank1";
+        else if(p.rank === 2) cls += " rank2";
+        else if(p.rank === 3) cls += " rank3";
 
         html += `
           <div class="${cls}">
-            <div class="rank">${i+1}</div>
+            <div class="rank">${p.rank}</div>   <!-- ✅ ここ -->
             <div class="rank-name">${p.name}</div>
             <div class="rank-score">${p.score}点</div>
           </div>
@@ -377,7 +434,10 @@ document.getElementById("btnAnswer").onclick = () => {
 };
 
 // ✅ ランキング
+// ✅ ランキング
 document.getElementById("btnRanking").onclick = async () => {
+
+  console.log("BTN RANKING CLICKED, state.eventId =", state.eventId);
 
   /* ✅ 出題中・解答中は何もしない */
   if (state.mode === "question") {
@@ -434,7 +494,13 @@ onSnapshot(doc(db,"game","state"), snap => {
 
   const newState = snap.data();
 
-  // ✅ eventId が変わったら人数リセット
+  // ✅ 古い更新を無視（超重要）
+  if (state.updatedAt && newState.updatedAt < state.updatedAt) {
+    return;
+  }
+
+
+  // ✅ eventId 切替
   if (state.eventId && state.eventId !== newState.eventId) {
     playerCount = 0;
     document.getElementById("playerCountText").textContent =

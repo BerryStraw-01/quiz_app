@@ -44,7 +44,8 @@ function subscribeQuestion(s){
     unsubscribeQuestion = null;
   }
 
-  const questionId = s.questionId; // ✅ 固定コピー
+  const questionId = s.questionId;
+  const eventId = s.eventId;
 
   unsubscribeQuestion = onSnapshot(
     doc(db, "questions", "q" + questionId),
@@ -52,12 +53,19 @@ function subscribeQuestion(s){
 
       if (!snap.exists()) return;
 
-      // ✅ 古いイベントを無視
-      if (!currentState || currentState.questionId !== questionId) return;
+      // ✅ 完全ガード（超重要）
+      if (!currentState) return;
+      if (currentState.questionId !== questionId) return;
+      if (currentState.eventId !== eventId) return;
+      if (currentState.mode !== "question" && currentState.mode !== "answer") return;
 
       currentQuestion = snap.data();
 
-      render(currentQuestion, false);
+      if (currentState.mode === "question") {
+        render(currentQuestion, false);
+      } else if (currentState.mode === "answer") {
+        render(currentQuestion, true);
+      }
     }
   );
 }
@@ -80,20 +88,25 @@ function subscribeAnswer(s){
 
       if (!snap.exists()) return;
 
-      // ✅ 古いものを無視
-      if (!currentState ||
-          currentState.questionId !== questionId ||
-          currentState.eventId !== eventId) return;
+      // ✅ ガード
+      if (!currentState) return;
+      if (currentState.questionId !== questionId) return;
+      if (currentState.eventId !== eventId) return;
 
       const data = snap.data();
-
       if (data.eventId !== eventId) return;
 
       myChoice = data.choice;
       hasAnswered = true;
 
-      if (currentQuestion) {
+      if (!currentQuestion) return;
+
+      if (currentState.mode === "question") {
         render(currentQuestion, false);
+      }
+
+      if (currentState.mode === "answer") {
+        render(currentQuestion, true);
       }
     }
   );
@@ -138,6 +151,16 @@ document.getElementById("btnJoin").onclick = async ()=>{
    問題描画
 ====================== */
 function render(q, showAnswer){
+
+  if (!showAnswer && !hasAnswered) {
+    myChoice = null;
+  }
+
+  if(currentState.mode === "question"){
+    if(!hasAnswered){
+      myChoice = null;
+    }
+  }
 
   /* ======================
      問題文
@@ -260,29 +283,36 @@ let lastEventId = savedEventId; // ✅ 追加
 
 onSnapshot(stateRef, (snap) => {
 
-  // ✅ モード変化時に全停止
-  if (unsubscribeQuestion && s.mode !== "question") {
-    unsubscribeQuestion();
-    unsubscribeQuestion = null;
-  }
-
-  if (unsubscribeAnswer && s.mode !== "question") {
-    unsubscribeAnswer();
-    unsubscribeAnswer = null;
-  }
-
   if (!snap.exists()) {
     setDoc(stateRef, {
       mode: "waiting",
       questionId: null,
       acceptingAnswers: false,
-      eventId: crypto.randomUUID()
+      eventId: crypto.randomUUID(),
+      updatedAt: Date.now() // ✅ 追加
     });
     return;
   }
 
-  const s = snap.data();
+  const s = snap.data(); // ✅ ここが最初
   currentState = s;
+
+  // ✅ モード変化で全部止める
+  if (unsubscribeQuestion && s.mode !== "question") {
+    unsubscribeQuestion();
+    unsubscribeQuestion = null;
+  }
+
+  if (unsubscribeAnswer && s.mode !== "question" && s.mode !== "answer") {
+
+    unsubscribeAnswer();
+    unsubscribeAnswer = null;
+  }
+
+  if (unsubscribeRanking && s.mode !== "ranking") {
+    unsubscribeRanking();
+    unsubscribeRanking = null;
+  }
 
   /* イベント切替 */
   if (savedEventId !== s.eventId) {
@@ -297,65 +327,86 @@ onSnapshot(stateRef, (snap) => {
     return;
   }
 
-  /* join */
   if (s.mode === "join") {
     show("wait");
     stopConfetti();
     return;
   }
 
-  /* 待機 */
   if (s.mode === "waiting") {
     show("wait");
     stopConfetti();
     return;
   }
 
-  /* 問題 */
   if (s.mode === "question") {
 
     show("quiz");
     stopConfetti();
 
-    // ✅ 問題が変わったらリセット
     if (s.questionId !== lastQuestionId) {
       myChoice = null;
       hasAnswered = false;
       lastQuestionId = s.questionId;
+
+      // ✅ 追加
+      document.getElementById("answerResult").style.display = "none";
     }
+
 
     subscribeQuestion(s);
     subscribeAnswer(s);
-
     return;
   }
 
-  /* 解答 */
   if (s.mode === "answer") {
 
     show("quiz");
 
     if (currentQuestion) {
       render(currentQuestion, true);
+
+      // ✅ ここ追加
+      const labels = ["①","②","③","④"];
+
+      document.getElementById("myAnswer").textContent =
+        myChoice !== null ? labels[myChoice] : "-";
+
+      document.getElementById("correctAnswer").textContent =
+        labels[currentQuestion.answer];
+
+      // ✅ 既存を止める
+      if (unsubscribePlayerScore) {
+        unsubscribePlayerScore();
+        unsubscribePlayerScore = null;
+      }
+
+      unsubscribePlayerScore = onSnapshot(
+        doc(db, "players", userId),
+        snap => {
+          if (snap.exists()) {
+            document.getElementById("score").textContent =
+              snap.data().score ?? 0;
+          }
+        }
+      );
     }
 
     document.getElementById("answerResult").style.display = "block";
 
-    const correct = myChoice === currentQuestion.answer;
-
-    if (correct) startConfetti();
-    else stopConfetti();
+    if (myChoice !== null && currentQuestion) {
+      const correct = myChoice === currentQuestion.answer;
+      if (correct) startConfetti();
+      else stopConfetti();
+    }
 
     return;
   }
 
-  /* ランキング */
   if (s.mode === "ranking") {
 
     show("ranking");
     stopConfetti();
-
-    if (unsubscribeRanking) return;
 
     unsubscribeRanking = onSnapshot(
       doc(db, "ranking", "current"),
@@ -369,9 +420,15 @@ onSnapshot(stateRef, (snap) => {
         let html = "";
 
         r.top10.forEach((p, i) => {
+          let cls = "rank-row";
+
+          if (p.rank === 1) cls += " rank1";
+          else if (p.rank === 2) cls += " rank2";
+          else if (p.rank === 3) cls += " rank3";
+
           html += `
-            <div class="rank-row">
-              <div class="rank">${i + 1}</div>
+            <div class="${cls}">
+              <div class="rank">${p.rank}</div>   <!-- ✅これにする -->
               <div class="rank-name">${p.name}</div>
               <div class="rank-score">${p.score}点</div>
             </div>
