@@ -43,8 +43,8 @@ function updateState(data, newEvent = false){
   const newState = {
     ...data,
     eventId: newEvent
-      ? Date.now().toString()
-      : (state.eventId ?? Date.now().toString())
+      ? crypto.randomUUID()
+      : state.eventId
   };
 
   return setDoc(doc(db, "game", "state"), newState, { merge: true });

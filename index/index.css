@@ -606,4 +606,8 @@ body{
 #choices.two .choice{
   min-height:80px;
 }
-``
+
+#qImg{
+  max-height: 200px;
+  object-fit: contain;
+}
