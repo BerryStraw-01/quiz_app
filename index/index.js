@@ -32,10 +32,9 @@ let myChoice = null;
 let hasAnswered = false;
 let lastQuestionId = null;
 
-/* ✅ listener解除用（超重要） */
+/* ✅ ここを追加（重要） */
 let unsubscribeQuestion = null;
 let unsubscribeAnswer = null;
-let unsubscribePlayerScore = null;
 let unsubscribeRanking = null;
 
 function subscribeQuestion(s){
@@ -45,11 +44,16 @@ function subscribeQuestion(s){
     unsubscribeQuestion = null;
   }
 
+  const questionId = s.questionId; // ✅ 固定コピー
+
   unsubscribeQuestion = onSnapshot(
-    doc(db, "questions", "q" + s.questionId),
+    doc(db, "questions", "q" + questionId),
     snap => {
 
       if (!snap.exists()) return;
+
+      // ✅ 古いイベントを無視
+      if (!currentState || currentState.questionId !== questionId) return;
 
       currentQuestion = snap.data();
 
@@ -67,15 +71,23 @@ function subscribeAnswer(s){
     unsubscribeAnswer = null;
   }
 
+  const questionId = s.questionId;
+  const eventId = s.eventId;
+
   unsubscribeAnswer = onSnapshot(
-    doc(db, "answers", "q" + s.questionId, "users", userId),
+    doc(db, "answers", "q" + questionId, "users", userId),
     snap => {
 
       if (!snap.exists()) return;
 
+      // ✅ 古いものを無視
+      if (!currentState ||
+          currentState.questionId !== questionId ||
+          currentState.eventId !== eventId) return;
+
       const data = snap.data();
 
-      if (data.eventId !== s.eventId) return;
+      if (data.eventId !== eventId) return;
 
       myChoice = data.choice;
       hasAnswered = true;
@@ -247,6 +259,17 @@ let unsubscribePlayerScore = null;
 let lastEventId = savedEventId; // ✅ 追加
 
 onSnapshot(stateRef, (snap) => {
+
+  // ✅ モード変化時に全停止
+  if (unsubscribeQuestion && s.mode !== "question") {
+    unsubscribeQuestion();
+    unsubscribeQuestion = null;
+  }
+
+  if (unsubscribeAnswer && s.mode !== "question") {
+    unsubscribeAnswer();
+    unsubscribeAnswer = null;
+  }
 
   if (!snap.exists()) {
     setDoc(stateRef, {
