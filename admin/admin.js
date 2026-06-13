@@ -173,11 +173,21 @@ async function startAnswerListener(){
     `;
 
     q.choices.forEach((t, i) => {
+
+      // ✅ text があれば text、なければ「選択肢1」
+      const label =
+        typeof t === "string"
+          ? t
+          : t.text
+            ? t.text
+            : `選択肢${i + 1}`;
+
       const isCorrect = (i === q.answer) && state.mode === "answer";
+
       html += `
         <div class="answer-row ${isCorrect ? "correct" : ""}">
           <div class="answer-no">${i + 1}</div>
-          <div class="answer-text">${t}</div>
+          <div class="answer-text">${label}</div>
           <div class="answer-count">${count[i]}人</div>
         </div>
       `;

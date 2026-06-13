@@ -4,24 +4,19 @@
 *{
   box-sizing:border-box;
 }
-
 /* ======================
    ベース
 ====================== */
-
-
 html, body{
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100vh;
-  overflow: hidden;          /* ✅ 画面を固定 */
-  overscroll-behavior: none; /* ✅ ゴムスクロール防止 */
+  min-height: 100vh;          /* ✅ height → min-height */
+  /* overflow: hidden を削除 */
+  overscroll-behavior: none;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 }
 
-
-/* ✅ body は flex にしない（index と同じ） */
 body{
   position:relative;
   overflow-x:hidden;
@@ -114,11 +109,12 @@ body{
 .phone{
   width: 100%;
   max-width: 390px;
-  height: 100vh;               /* ✅ ビューポート基準 */
+  min-height: 100vh;               /* ✅ height → min-height */
   margin: 0 auto;
-  padding: 40px 0;
-  box-sizing: border-box;      /* ✅ padding を高さに含める */
-  overflow-y: auto;            /* ✅ ここだけスクロール */
+  padding: 40px 0 120px;           /* ✅ 下に120pxの余白 */
+  padding-bottom: calc(120px + env(safe-area-inset-bottom)); /* ✅ iPhoneのホームバー対策 */
+  box-sizing: border-box;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   background: transparent;
 }

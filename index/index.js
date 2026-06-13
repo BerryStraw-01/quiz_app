@@ -127,24 +127,42 @@ function show(id){
 /* ======================
    参加
 ====================== */
-document.getElementById("btnJoin").onclick = async ()=>{
-  if(!currentState) return;
+let isJoining = false; // ← 追加：ロックフラグ
 
-  const name = document.getElementById("name").value;
-  if(!name) return;
+document.getElementById("btnJoin").onclick = async () => {
+  if (!currentState) return;
+  if (isJoining) return; // ← 追加：二重実行ブロック
 
-  const ref = await addDoc(collection(db,"players"),{
-    name,
-    score: 0,
-    eventId: currentState.eventId
-  });
+  const name = document.getElementById("name").value.trim();
+  if (!name) return;
 
-  userId = ref.id;
-  localStorage.setItem("userId", userId);
-  localStorage.setItem("eventId", currentState.eventId);
-  savedEventId = currentState.eventId;
+  // ── ここから即座にUIをロック ──
+  isJoining = true;
+  const btn = document.getElementById("btnJoin");
+  btn.disabled = true;
+  btn.textContent = "参加中…";
 
-  show("wait");
+  try {
+    const ref = await addDoc(collection(db, "players"), {
+      name,
+      score: 0,
+      eventId: currentState.eventId
+    });
+
+    userId = ref.id;
+    localStorage.setItem("userId", userId);
+    localStorage.setItem("eventId", currentState.eventId);
+    savedEventId = currentState.eventId;
+
+    show("wait");
+
+  } catch (e) {
+    // ── 通信エラー時は復帰 ──
+    console.error("参加エラー:", e);
+    btn.disabled = false;
+    btn.textContent = "参加する";
+    isJoining = false;
+  }
 };
 
 /* ======================
@@ -197,12 +215,14 @@ function render(q, showAnswer){
   choicesEl.innerHTML = "";
 
   // ✅ 2択かどうかでクラス切り替え
-  if(q.choices.length === 2){
+  const type = q.type ?? q.choices.length; // ← 互換性確保
+
+  if (type === "2") {
     choicesEl.classList.add("two");
-    choicesEl.style.gridTemplateColumns = "1fr";        // ← 縦並び
-  }else{
+    choicesEl.style.gridTemplateColumns = "1fr";
+  } else {
     choicesEl.classList.remove("two");
-    choicesEl.style.gridTemplateColumns = "1fr 1fr";    // ← 2×2
+    choicesEl.style.gridTemplateColumns = "1fr 1fr";
   }
 
   const labels = ["①","②","③","④"];
@@ -249,7 +269,30 @@ function render(q, showAnswer){
     }
 
     div.className = cls;
-    div.innerHTML = `${labels[i]}<br>${c}`;
+    // ✅ 古い文字配列と新しい object 両対応
+    const choice =
+      typeof c === "string"
+        ? { text: c, image: null }
+        : {
+            text: c.text ?? "",      // ✅ text がなければ空文字
+            image: c.image ?? null
+          };
+
+    let html = "";
+
+    // ✅ 選択肢テキスト
+    html += `
+      <div class="choice-text">
+        ${labels[i]}<br>${choice.text}
+      </div>
+    `;
+
+    // ✅ 画像
+    if (choice.image) {
+      html += `<img class="choice-img" src="${choice.image}">`;
+    }
+
+    div.innerHTML = html;
 
     if(clickable){
       div.onclick = () => answer(i);
@@ -366,6 +409,19 @@ onSnapshot(stateRef, (snap) => {
     if (currentQuestion) {
       render(currentQuestion, true);
 
+      const judgeEl = document.getElementById("answerJudge");
+
+      judgeEl.className = "answer-judge-global";
+      judgeEl.style.display = "block";
+
+      if (myChoice === currentQuestion.answer) {
+        judgeEl.textContent = "正解";
+        judgeEl.classList.add("correct");
+      } else {
+        judgeEl.textContent = "不正解";
+        judgeEl.classList.add("wrong");
+      }
+
       // ✅ ここ追加
       const labels = ["①","②","③","④"];
 
@@ -390,6 +446,34 @@ onSnapshot(stateRef, (snap) => {
           }
         }
       );
+
+      // ✅ 解説テキスト・画像
+      // ✅ 解説テキスト・画像
+      const exp = currentQuestion.explanation;
+
+      const expTextEl = document.getElementById("explainText");
+      const expImgEl  = document.getElementById("explainImg");
+
+      // ✅ 初期化（毎回必ず）
+      expTextEl.style.display = "none";
+      expTextEl.textContent = "";
+      expImgEl.style.display = "none";
+      expImgEl.src = "";
+
+      if (exp) {
+
+        // ✅ テキストがある場合
+        if (typeof exp.text === "string" && exp.text.trim() !== "") {
+          expTextEl.textContent = `解説：${exp.text}`;
+          expTextEl.style.display = "block";
+        }
+
+        // ✅ 画像がある場合（text が無くてもOK）
+        if (typeof exp.image === "string" && exp.image.trim() !== "") {
+          expImgEl.src = exp.image;
+          expImgEl.style.display = "block";
+        }
+      }
     }
 
     document.getElementById("answerResult").style.display = "block";

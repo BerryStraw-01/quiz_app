@@ -155,7 +155,9 @@
 
             <!-- ✅ 結果表示（ここが重要） -->
             <div id="answerResult" class="answer-result" style="display:none;">
-                <div id="resultText" class="result-text"></div>
+
+                <!-- ✅ 判定表示（追加） -->
+                <div id="answerJudge" class="answer-judge-global" style="display:none;"></div>
 
                 <div class="answer-detail">
                     あなたの解答：<span id="myAnswer"></span>
@@ -168,6 +170,10 @@
                 <div class="score-text">
                     現在のスコア：<span id="score"></span>
                 </div>
+
+                <div id="explainText" class="explain-text" style="display:none;"></div>
+                <img id="explainImg" class="explain-img" style="display:none;">
+
             </div>
 
         </div>
