@@ -312,35 +312,49 @@ async function showRanking(){
 ===================================================== */
 async function loadQuestions(){
   const snap = await getDocs(collection(db,"questions"));
-  let html = "";
-  let i = 1;
 
-  snap.forEach(ds=>{
-    html += `<div class="q-card" data-id="${i}">${ds.data().text}</div>`;
-    i++;
+  // ✅ ドキュメントID（"q1","q2"...）から数値を抜き出して配列化
+  const items = [];
+  snap.forEach(ds => {
+    const m = ds.id.match(/^q(\d+)$/); // "q12" → 12
+    if (!m) return;                    // q で始まらないものは無視
+    items.push({
+      qid:  Number(m[1]),
+      text: ds.data().text ?? ""
+    });
+  });
+
+  // ✅ 数値順にソート（q1, q2, ..., q10, q11 ...）
+  items.sort((a, b) => a.qid - b.qid);
+
+  // ✅ HTML 生成（data-id は実際の qid を使う）
+  let html = "";
+  items.forEach(it => {
+    html += `<div class="q-card" data-id="${it.qid}">${it.text}</div>`;
   });
 
   document.getElementById("questionList").innerHTML = html;
 
-  document.querySelectorAll(".q-card").forEach(card=>{
-    card.onclick = async ()=>{
-      if(card.classList.contains("answered")) return;
+  // クリック処理（中身は元のまま）
+  document.querySelectorAll(".q-card").forEach(card => {
+    card.onclick = async () => {
+      if (card.classList.contains("answered")) return;
 
       const qid = Number(card.dataset.id);
       await updateState({
-        mode:"question",
-        questionId:qid,
-        acceptingAnswers:false
+        mode: "question",
+        questionId: qid,
+        acceptingAnswers: false
       }, false);
 
       document.querySelectorAll(".q-card")
-        .forEach(c=>c.classList.remove("active"));
+        .forEach(c => c.classList.remove("active"));
       card.classList.add("active");
     };
   });
 
-  // ✅ ★ 追加：state が既にあれば、UI を再反映
-  if(state){
+  // state が既にあれば UI を再反映
+  if (state) {
     updateUI(state);
   }
 }
