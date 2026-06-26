@@ -32,10 +32,21 @@ let myChoice = null;
 let hasAnswered = false;
 let lastQuestionId = null;
 
-/* ✅ ここを追加（重要） */
 let unsubscribeQuestion = null;
 let unsubscribeAnswer = null;
 let unsubscribeRanking = null;
+
+let isJoining = false;
+
+/* ✅ 参加ボタンを初期状態に戻す（function宣言で hoisting される形に） */
+function resetJoinButton(){
+  const btn = document.getElementById("btnJoin");
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = "参加する";
+  }
+  isJoining = false;
+}
 
 function subscribeQuestion(s){
 
@@ -127,26 +138,14 @@ function show(id){
 /* ======================
    参加
 ====================== */
-let isJoining = false;
-
-/* ✅ 参加ボタンを初期状態に戻す */
-function resetJoinButton(){
-  const btn = document.getElementById("btnJoin");
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = "参加する";
-  }
-  isJoining = false;
-}
 
 document.getElementById("btnJoin").onclick = async () => {
   if (!currentState) return;
-  if (isJoining) return; // ← 追加：二重実行ブロック
+  if (isJoining) return;
 
   const name = document.getElementById("name").value.trim();
   if (!name) return;
 
-  // ── ここから即座にUIをロック ──
   isJoining = true;
   const btn = document.getElementById("btnJoin");
   btn.disabled = true;
@@ -165,11 +164,11 @@ document.getElementById("btnJoin").onclick = async () => {
     savedEventId = currentState.eventId;
 
     show("wait");
-    resetJoinButton();   // ✅ 追加：成功後もボタンを元に戻す
-
   } catch (e) {
     console.error("参加エラー:", e);
-    resetJoinButton();   // ✅ ここも関数化
+  } finally {
+    // ✅ 成功・失敗どちらでも必ずボタンを戻す
+    resetJoinButton();
   }
 };
 
@@ -323,16 +322,6 @@ function render(q, showAnswer){
   }
 }
 
-/* ✅ 参加ボタンを初期状態に戻す */
-function resetJoinButton(){
-  const btn = document.getElementById("btnJoin");
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = "参加する";
-  }
-  isJoining = false;
-}
-
 /* ======================
    状態監視p.data()
 ====================== */
@@ -375,22 +364,20 @@ onSnapshot(stateRef, (snap) => {
     unsubscribeRanking = null;
   }
 
-  /* イベント切替（管理者が「新しく始める」を押した時など） */
-  if (savedEventId !== s.eventId) {
+  /* ✅ イベント切替（新しいクイズが始まった） */
+  if (savedEventId && savedEventId !== s.eventId) {
+    // ← ★★★ savedEventId が「存在する」場合だけクリアする（重要）
     myChoice = null;
     hasAnswered = false;
     lastQuestionId = null;
 
-    // ✅ ここから追加：ユーザー情報を完全クリア
     localStorage.removeItem("userId");
     localStorage.removeItem("eventId");
     userId = null;
     savedEventId = null;
 
-    // ✅ 参加ボタンを必ず初期化
     resetJoinButton();
 
-    // ✅ 名前入力欄も空にする（再入力しやすく）
     const nameInput = document.getElementById("name");
     if (nameInput) nameInput.value = "";
   }
@@ -398,7 +385,7 @@ onSnapshot(stateRef, (snap) => {
   /* 未参加 */
   if (!userId || savedEventId !== s.eventId) {
     if (s.mode === "join") {
-      resetJoinButton();   // ✅ 保険
+      resetJoinButton();
       show("join");
     } else {
       show("blocked");
