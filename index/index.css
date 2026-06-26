@@ -693,3 +693,29 @@ body{
 .answer-judge-global.wrong {
   color: #e03a3a; /* 赤 */
 }
+
+/* ======================
+   選択肢の画像を大きく表示
+====================== */
+.choice-img {
+  width: 100%;
+  max-height: 220px;   /* ← 120px から拡大 */
+  object-fit: contain;
+  margin-top: 8px;
+  border-radius: 10px;
+}
+
+/* 画像つき選択肢のカード自体も背を高く */
+.choice {
+  min-height: 80px;    /* 画像が入る前提で広めに */
+  padding: 12px;
+}
+
+/* ✅ 2択モードのときはさらに大きく */
+#choices.two .choice {
+  min-height: 120px;
+}
+
+#choices.two .choice-img {
+  max-height: 280px;   /* 2択時は画像をさらに大きく */
+}

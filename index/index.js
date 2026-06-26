@@ -315,6 +315,16 @@ function render(q, showAnswer){
   }
 }
 
+/* ✅ 参加ボタンを初期状態に戻す */
+function resetJoinButton(){
+  const btn = document.getElementById("btnJoin");
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = "参加する";
+  }
+  isJoining = false;
+}
+
 /* ======================
    状態監視p.data()
 ====================== */
@@ -358,15 +368,31 @@ onSnapshot(stateRef, (snap) => {
   }
 
   /* イベント切替 */
+  /* イベント切替 */
   if (savedEventId !== s.eventId) {
     myChoice = null;
     hasAnswered = false;
     lastQuestionId = null;
+
+    // ✅ 追加：参加ボタンの状態もリセット
+    resetJoinButton();
+
+    // ✅ 追加：古いlocalStorageを破棄（重要）
+    localStorage.removeItem("userId");
+    localStorage.removeItem("eventId");
+    userId = null;
+    savedEventId = null;
   }
 
   /* 未参加 */
+  /* 未参加 */
   if (!userId || savedEventId !== s.eventId) {
-    show(s.mode === "join" ? "join" : "blocked");
+    if (s.mode === "join") {
+      resetJoinButton();   // ✅ 追加
+      show("join");
+    } else {
+      show("blocked");
+    }
     return;
   }
 
