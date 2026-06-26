@@ -221,14 +221,27 @@ function render(q, showAnswer){
   const choicesEl = document.getElementById("choices");
   choicesEl.innerHTML = "";
 
-  // ✅ 2択かどうかでクラス切り替え
-  const type = q.type ?? q.choices.length; // ← 互換性確保
+  // ✅ 画像つき選択肢があるか判定
+  const hasChoiceImage = q.choices.some(c =>
+    typeof c === "object" && c && typeof c.image === "string" && c.image.trim() !== ""
+  );
 
-  if (type === "2") {
+  // ✅ 2択かどうかでクラス切り替え
+  const type = q.type ?? q.choices.length;
+
+  // 既存クラスをリセット
+  choicesEl.classList.remove("two", "has-image");
+
+  if (hasChoiceImage) {
+    // ✅ 画像つき → 1列×4行
+    choicesEl.classList.add("has-image");
+    choicesEl.style.gridTemplateColumns = "1fr";
+  } else if (type === "2") {
+    // ✅ 2択 → 1列
     choicesEl.classList.add("two");
     choicesEl.style.gridTemplateColumns = "1fr";
   } else {
-    choicesEl.classList.remove("two");
+    // ✅ それ以外 → 2×2
     choicesEl.style.gridTemplateColumns = "1fr 1fr";
   }
 

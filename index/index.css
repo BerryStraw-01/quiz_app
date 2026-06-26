@@ -719,3 +719,47 @@ body{
 #choices.two .choice-img {
   max-height: 280px;   /* 2択時は画像をさらに大きく */
 }
+
+/* ======================
+   画像つき選択肢：1列×4行
+====================== */
+#choices.has-image {
+  display: grid;
+  grid-template-columns: 1fr;   /* ✅ 1列 */
+  gap: 14px;
+}
+
+#choices.has-image .choice {
+  min-height: 0;                /* ← 既存の min-height を打ち消す */
+  padding: 14px;
+  flex-direction: row;          /* ✅ 文字を左、画像を右に並べる */
+  align-items: center;
+  gap: 14px;
+}
+
+#choices.has-image .choice-text {
+  flex: 0 0 80px;               /* ← 文字の幅を固定 */
+  margin-bottom: 0;
+  text-align: center;
+  font-size: 18px;
+}
+
+#choices.has-image .choice-img {
+  flex: 1;                      /* ✅ 画像が広いスペースを占有 */
+  width: auto;
+  max-height: 180px;            /* ← 大きく表示 */
+  margin-top: 0;
+}
+
+#choices.has-image .choice {
+  flex-direction: column;   /* ← 縦並びに */
+}
+
+#choices.has-image .choice-img {
+  max-height: 240px;        /* ← さらに大きく */
+}
+
+#choices.has-image .choice-text {
+  flex: none;
+  margin-bottom: 8px;
+}
