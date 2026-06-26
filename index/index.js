@@ -127,7 +127,17 @@ function show(id){
 /* ======================
    参加
 ====================== */
-let isJoining = false; // ← 追加：ロックフラグ
+let isJoining = false;
+
+/* ✅ 参加ボタンを初期状態に戻す */
+function resetJoinButton(){
+  const btn = document.getElementById("btnJoin");
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = "参加する";
+  }
+  isJoining = false;
+}
 
 document.getElementById("btnJoin").onclick = async () => {
   if (!currentState) return;
@@ -155,13 +165,11 @@ document.getElementById("btnJoin").onclick = async () => {
     savedEventId = currentState.eventId;
 
     show("wait");
+    resetJoinButton();   // ✅ 追加：成功後もボタンを元に戻す
 
   } catch (e) {
-    // ── 通信エラー時は復帰 ──
     console.error("参加エラー:", e);
-    btn.disabled = false;
-    btn.textContent = "参加する";
-    isJoining = false;
+    resetJoinButton();   // ✅ ここも関数化
   }
 };
 
@@ -367,28 +375,30 @@ onSnapshot(stateRef, (snap) => {
     unsubscribeRanking = null;
   }
 
-  /* イベント切替 */
-  /* イベント切替 */
+  /* イベント切替（管理者が「新しく始める」を押した時など） */
   if (savedEventId !== s.eventId) {
     myChoice = null;
     hasAnswered = false;
     lastQuestionId = null;
 
-    // ✅ 追加：参加ボタンの状態もリセット
-    resetJoinButton();
-
-    // ✅ 追加：古いlocalStorageを破棄（重要）
+    // ✅ ここから追加：ユーザー情報を完全クリア
     localStorage.removeItem("userId");
     localStorage.removeItem("eventId");
     userId = null;
     savedEventId = null;
+
+    // ✅ 参加ボタンを必ず初期化
+    resetJoinButton();
+
+    // ✅ 名前入力欄も空にする（再入力しやすく）
+    const nameInput = document.getElementById("name");
+    if (nameInput) nameInput.value = "";
   }
 
   /* 未参加 */
-  /* 未参加 */
   if (!userId || savedEventId !== s.eventId) {
     if (s.mode === "join") {
-      resetJoinButton();   // ✅ 追加
+      resetJoinButton();   // ✅ 保険
       show("join");
     } else {
       show("blocked");
