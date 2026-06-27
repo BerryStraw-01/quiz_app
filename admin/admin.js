@@ -518,20 +518,30 @@ onSnapshot(doc(db,"game","state"), snap => {
 
   const newState = snap.data();
 
-  // ✅ 古い更新を無視（超重要）
   if (state.updatedAt && newState.updatedAt < state.updatedAt) {
     return;
   }
 
+  // ✅ モードが変わったか覚えておく
+  const prevMode = state.mode;
+  const prevQuestionId = state.questionId;
 
-  // ✅ eventId 切替
   if (state.eventId && state.eventId !== newState.eventId) {
     playerCount = 0;
-    document.getElementById("playerCountText").textContent =
-      "参加人数：0人";
+    document.getElementById("playerCountText").textContent = "参加人数：0人";
   }
 
   updateUI(newState);
+
+  // ✅ ★ 追加：状況タブを開いていたら中身を再描画
+  if (currentTab === "status") {
+    const modeChanged       = prevMode !== newState.mode;
+    const questionChanged   = prevQuestionId !== newState.questionId;
+
+    if (modeChanged || questionChanged) {
+      renderStatus();   // ranking / answer status を自動で切り替え
+    }
+  }
 });
 
 /* =====================================================

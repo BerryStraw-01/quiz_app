@@ -427,20 +427,29 @@ onSnapshot(stateRef, (snap) => {
       myChoice = null;
       hasAnswered = false;
       lastQuestionId = s.questionId;
-
-      // ✅ 追加
       document.getElementById("answerResult").style.display = "none";
     }
 
-
     subscribeQuestion(s);
     subscribeAnswer(s);
+
+    // ✅ ★ 追加：既に問題データを持っていれば即再描画
+    // （acceptingAnswers の切替などをUIに即反映するため）
+    if (currentQuestion) {
+      render(currentQuestion, false);
+    }
+
     return;
   }
 
   if (s.mode === "answer") {
 
     show("quiz");
+
+    if (!currentQuestion) {
+      subscribeQuestion(s);
+      subscribeAnswer(s);
+    }
 
     if (currentQuestion) {
       render(currentQuestion, true);
