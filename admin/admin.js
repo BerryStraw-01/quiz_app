@@ -38,6 +38,10 @@ let currentTab = "q";
 let unsubscribeAnswers = null;
 let playerCount = 0;
 
+// ✅ 追加：status タブで最後に描画した状態を覚えておく
+let lastStatusMode = null;
+let lastStatusQuestionId = null;
+
 /* =====================================================
    ✅ state更新関数（核心）
 ===================================================== */
@@ -80,6 +84,9 @@ function showTab(tab){
   document.getElementById("tab-status").classList.toggle("active", tab === "status");
 
   if(tab === "status"){
+    // ✅ タブを開いた時点での state を記録
+    lastStatusMode = state.mode;
+    lastStatusQuestionId = state.questionId;
     renderStatus();
   }
 }
@@ -522,10 +529,6 @@ onSnapshot(doc(db,"game","state"), snap => {
     return;
   }
 
-  // ✅ モードが変わったか覚えておく
-  const prevMode = state.mode;
-  const prevQuestionId = state.questionId;
-
   if (state.eventId && state.eventId !== newState.eventId) {
     playerCount = 0;
     document.getElementById("playerCountText").textContent = "参加人数：0人";
@@ -533,13 +536,15 @@ onSnapshot(doc(db,"game","state"), snap => {
 
   updateUI(newState);
 
-  // ✅ ★ 追加：状況タブを開いていたら中身を再描画
+  // ✅ ★ status タブ表示中なら、最後に描画した状態と比較して再描画
   if (currentTab === "status") {
-    const modeChanged       = prevMode !== newState.mode;
-    const questionChanged   = prevQuestionId !== newState.questionId;
+    const modeChanged     = lastStatusMode !== newState.mode;
+    const questionChanged = lastStatusQuestionId !== newState.questionId;
 
     if (modeChanged || questionChanged) {
-      renderStatus();   // ranking / answer status を自動で切り替え
+      lastStatusMode = newState.mode;
+      lastStatusQuestionId = newState.questionId;
+      renderStatus();
     }
   }
 });
